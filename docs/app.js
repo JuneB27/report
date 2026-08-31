@@ -116,6 +116,12 @@
 
   const setupSharedRecordPreview = async () => {
     if (!isSharedRecord || !sharedRecordPreview) return;
+    if (pageParams.get("fallback") !== "1") {
+      const gateway = new URL("record/", config.landingUrl || location.href);
+      gateway.searchParams.set("post", sharedPostId);
+      location.replace(gateway.href);
+      return;
+    }
     document.body.classList.add("record-mode");
     sharedRecordPreview.hidden = false;
     if (sharedRecordHeart) sharedRecordHeart.addEventListener("click", revealSharedRecordInvite);
