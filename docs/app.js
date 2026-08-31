@@ -143,6 +143,30 @@
 
   shareButton.addEventListener("click", async () => {
     try {
+      if (window.Kakao && config.kakaoJavaScriptKey) {
+        if (!Kakao.isInitialized()) Kakao.init(config.kakaoJavaScriptKey);
+        const inviteUrl = invitationUrl();
+        const webOnlyLink = {
+          mobileWebUrl: inviteUrl,
+          webUrl: inviteUrl
+        };
+        Kakao.Share.sendDefault({
+          objectType: "feed",
+          content: {
+            title: "REP:ORT 비공개 테스트",
+            description: "운동을 사진으로 기록하고 함께 꾸준해지는 피트니스 커뮤니티",
+            imageUrl: config.imageUrl,
+            link: { ...webOnlyLink }
+          },
+          buttons: [
+            {
+              title: "테스터 모집 페이지 열기",
+              link: { ...webOnlyLink }
+            }
+          ]
+        });
+        return;
+      }
       await fallbackShare();
     } catch (error) {
       if (error && error.name !== "AbortError") {
