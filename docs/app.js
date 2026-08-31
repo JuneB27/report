@@ -22,6 +22,7 @@
   const sharedRecordInvite = document.querySelector("#shared-record-invite");
   const status = document.querySelector("#status");
   const inviteCompleteCard = document.querySelector("#invite-complete-card");
+  const inviteCompleteTitle = document.querySelector("#invite-complete-title");
   const inviteCompleteDetail = document.querySelector("#invite-complete-detail");
   const playStoreCard = document.querySelector("#play-store-card");
   const APPLICATION_RECEIVED_AT_KEY = "report.testerApplication.receivedAt.v1";
@@ -291,22 +292,33 @@
 
   const refreshInviteCompletion = async () => {
     const applicationTime = readStoredApplicationTime();
-    if (!applicationTime || !inviteCompleteCard || !playStoreCard) return;
+    if (!inviteCompleteCard || !inviteCompleteTitle || !inviteCompleteDetail || !playStoreCard) return;
 
     try {
       const result = await requestInviteStatus();
       if (!result || !result.ok || !result.completeThrough) return;
-      const submittedAt = Date.parse(applicationTime);
       const completeThrough = Date.parse(result.completeThrough);
-      if (!Number.isFinite(submittedAt) || !Number.isFinite(completeThrough) || submittedAt > completeThrough) return;
+      if (!Number.isFinite(completeThrough)) return;
 
       const formatted = new Intl.DateTimeFormat("ko-KR", {
+        year: "numeric",
         month: "long",
         day: "numeric",
         hour: "numeric",
         minute: "2-digit"
       }).format(new Date(completeThrough));
-      inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대 처리가 완료되었습니다. 등록하신 Google 계정으로 앱을 설치해 주세요.`;
+
+      const submittedAt = Date.parse(applicationTime || "");
+      if (Number.isFinite(submittedAt) && submittedAt <= completeThrough) {
+        inviteCompleteTitle.textContent = "등록하신 계정의 초대가 완료됐어요.";
+        inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대 처리가 완료되었습니다. Google Play에서 REP:ORT를 설치해 주세요.`;
+      } else if (Number.isFinite(submittedAt)) {
+        inviteCompleteTitle.textContent = "테스트 초대를 순차 처리하고 있어요.";
+        inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대가 완료되었습니다. 이후 신청은 순서대로 처리됩니다.`;
+      } else {
+        inviteCompleteTitle.textContent = "여기까지 테스트 초대가 완료됐어요.";
+        inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대 처리가 완료되었습니다.`;
+      }
       inviteCompleteCard.hidden = false;
       playStoreCard.hidden = false;
     } catch (_) {
