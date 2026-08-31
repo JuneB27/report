@@ -4,7 +4,6 @@
   const config = window.REPORT_CONFIG || {};
   const form = document.querySelector("#tester-form");
   const emailInput = document.querySelector("#email");
-  const consentInput = document.querySelector("#consent");
   const submitButton = document.querySelector("#submit-button");
   const shareButton = document.querySelector("#kakao-share");
   const status = document.querySelector("#status");
@@ -53,11 +52,6 @@
     if (!emailInput.validity.valid) {
       emailInput.focus();
       setStatus("올바른 Google 계정 이메일을 입력해 주세요.", "error");
-      return;
-    }
-    if (!consentInput.checked) {
-      consentInput.focus();
-      setStatus("이메일 수집·이용에 동의해 주세요.", "error");
       return;
     }
     if (!config.appsScriptEndpoint) {
@@ -113,7 +107,7 @@
         const appLink = {
           mobileWebUrl: landingUrl,
           webUrl: landingUrl,
-          androidExecutionParams: { source: "tester-share" }
+          androidExecutionParams: "source=tester-share"
         };
         Kakao.Share.sendDefault({
           objectType: "feed",

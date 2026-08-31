@@ -17,7 +17,7 @@
           integrity="sha384-zt/G7/KfaRQ9dT/QIkS0ujMtzouJqzuSJcXVQu50x0rl/+mD1dc70AeOejVbMD9E"
           crossorigin="anonymous" defer></script>
   <script src="config.js" defer></script>
-  <script src="app.js?v=2" defer></script>
+  <script src="app.js?v=3" defer></script>
 </head>
 <body>
   <main>
@@ -30,7 +30,7 @@
       <div class="hero-actions">
         <a class="button button-primary" href="#apply">테스트 신청하기</a>
         <button class="button button-kakao" id="kakao-share" type="button">
-          <span aria-hidden="true">💬</span> 카카오톡으로 공유
+          <span aria-hidden="true">💬</span> 카톡으로 초대장 보내기
         </button>
       </div>
     </section>
@@ -62,10 +62,6 @@
                  placeholder="name@gmail.com" maxlength="254" required>
           <button class="button button-primary" id="submit-button" type="submit">신청</button>
         </div>
-        <label class="consent">
-          <input id="consent" type="checkbox" required>
-          <span>비공개 테스트 초대 목적으로 이메일을 수집·이용하는 데 동의합니다.</span>
-        </label>
         <p class="privacy-note">이메일은 이 기기에서 암호화되어 전송되며, 스프레드시트에는 암호문만 저장됩니다. <a href="privacy.html">수집 안내</a></p>
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </form>
