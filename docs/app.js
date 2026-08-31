@@ -6,7 +6,14 @@
   const emailInput = document.querySelector("#email");
   const submitButton = document.querySelector("#submit-button");
   const shareButton = document.querySelector("#kakao-share");
+  const openSharedRecord = document.querySelector("#open-shared-record");
   const status = document.querySelector("#status");
+
+  const sharedPostId = new URLSearchParams(location.search).get("post");
+  if (openSharedRecord && /^\d+$/.test(sharedPostId || "")) {
+    openSharedRecord.href = `report://record?post=${encodeURIComponent(sharedPostId)}`;
+    openSharedRecord.hidden = false;
+  }
 
   const setupScrollReveal = () => {
     const targets = [...document.querySelectorAll("[data-reveal]")];
@@ -130,10 +137,11 @@
         if (!Kakao.isInitialized()) Kakao.init(config.kakaoJavaScriptKey);
         const landingUrl = config.landingUrl || location.origin + location.pathname;
         const applyUrl = `${landingUrl.replace(/#.*$/, "")}#apply`;
+        const invitationUrl = new URL(landingUrl, location.href);
+        invitationUrl.searchParams.set("source", "kakao-invite");
         const appLink = {
-          mobileWebUrl: landingUrl,
-          webUrl: landingUrl,
-          androidExecutionParams: "source=tester-share"
+          mobileWebUrl: invitationUrl.href,
+          webUrl: invitationUrl.href
         };
         Kakao.Share.sendDefault({
           objectType: "feed",

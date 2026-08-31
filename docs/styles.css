@@ -99,6 +99,7 @@ h1 span, footer span { color: var(--yellow); }
 .button:active { transform: translateY(0) scale(.98); }
 .button:disabled { opacity: .5; cursor: wait; }
 .button-primary { background: var(--yellow); color: #121212; }
+.button-record { border: 1px solid var(--line); background: var(--surface-2); color: var(--text); }
 .button-kakao { background: var(--kakao); color: var(--kakao-text); }
 
 .feature-card, .apply-card {
