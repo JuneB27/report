@@ -192,8 +192,8 @@
 
   const fallbackShare = async () => {
     const shareData = {
-      title: "REP:ORT 비공개 테스트",
-      text: "완벽한 운동보다 오늘 한 운동이 낫습니다. REP:ORT를 먼저 만나보세요.",
+      title: "REP:ORT 앱",
+      text: "완벽한 운동보다 오늘 한 운동이 낫습니다. REP:ORT를 앱으로 만나보세요.",
       url: invitationUrl()
     };
     if (navigator.share) {
@@ -218,8 +218,8 @@
         container: "#kakaotalk-sharing-btn",
         objectType: "feed",
         content: {
-          title: "REP:ORT 비공개 테스트",
-          description: "운동을 사진으로 기록하고 함께 꾸준해지는 피트니스 커뮤니티",
+          title: "REP:ORT 앱 등록",
+          description: "운동을 사진으로 기록하고 함께 성장하는 REP:ORT",
           imageUrl: config.imageUrl,
           link: { ...webOnlyLink }
         },
