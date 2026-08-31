@@ -10,7 +10,7 @@ window.REPORT_CONFIG = {
     ext: true
   },
   landingUrl: "https://juneb27.github.io/report/",
-  imageUrl: "https://juneb27.github.io/report/assets/feature-graphic.png",
+  imageUrl: "https://juneb27.github.io/report/assets/app-icon.png",
   firebaseProjectId: "report-workout",
   firebaseWebApiKey: "AIzaSyA5IgA37T1DDjjy26UqSeG4sXFqLZy7zMg",
   webAppUrl: "https://rep-ort.vercel.app/"
