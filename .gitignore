@@ -1,0 +1,5 @@
+private_keys/
+.private/
+REPORT_testers_decrypted.csv
+*.log
+.DS_Store

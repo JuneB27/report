@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0e">
+  <meta name="description" content="운동을 사진으로 인증하고 함께 꾸준해지는 REP:ORT 비공개 테스트에 참여하세요.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="REP:ORT 비공개 테스트">
+  <meta property="og:description" content="완벽한 운동보다 오늘 한 운동이 낫습니다. REP:ORT를 먼저 만나보세요.">
+  <meta property="og:image" content="https://juneb27.github.io/report/assets/feature-graphic.png">
+  <meta property="og:url" content="https://juneb27.github.io/report/">
+  <title>REP:ORT 비공개 테스트</title>
+  <link rel="icon" href="assets/app-icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.2/kakao.min.js"
+          integrity="sha384-zt/G7/KfaRQ9dT/QIkS0ujMtzouJqzuSJcXVQu50x0rl/+mD1dc70AeOejVbMD9E"
+          crossorigin="anonymous" defer></script>
+  <script src="config.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <img class="app-icon" src="assets/app-icon.png" width="108" height="108" alt="REP:ORT 앱 아이콘">
+      <p class="eyebrow">PRIVATE TEST</p>
+      <h1 id="hero-title" aria-label="REP:ORT">REP<span>:</span>ORT</h1>
+      <p class="lead">완벽한 운동보다<br>오늘 한 운동이 낫습니다.</p>
+      <p class="sublead">사진으로 운동을 남기고, 서로의 꾸준함을 응원하는 피트니스 커뮤니티를 먼저 만나보세요.</p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="#apply">테스트 신청하기</a>
+        <button class="button button-kakao" id="kakao-share" type="button">
+          <span aria-hidden="true">💬</span> 카카오톡으로 공유
+        </button>
+      </div>
+    </section>
+
+    <section class="feature-card" aria-labelledby="features-title">
+      <img src="assets/feature-graphic.png" alt="REP:ORT 앱 기능 소개 이미지">
+      <div class="feature-copy">
+        <p class="eyebrow">TRAIN · RECORD · CONNECT</p>
+        <h2 id="features-title">운동이 기록이 되고,<br>기록이 습관이 됩니다.</h2>
+        <ul>
+          <li>사진과 운동 종류로 간편하게 인증</li>
+          <li>좋아요·댓글·답글로 서로 응원</li>
+          <li>주간·월간·연간 랭킹과 챌린지</li>
+          <li>피드와 3열 그리드로 내 성장 확인</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="apply-card" id="apply" aria-labelledby="apply-title">
+      <div>
+        <p class="eyebrow">ANDROID CLOSED TEST</p>
+        <h2 id="apply-title">테스터로 참여하기</h2>
+        <p>Google Play 비공개 테스트에 사용할 Google 계정 이메일을 입력해 주세요.</p>
+      </div>
+      <form id="tester-form" novalidate>
+        <label for="email">Google 계정 이메일</label>
+        <div class="field-row">
+          <input id="email" name="email" type="email" autocomplete="email" inputmode="email"
+                 placeholder="name@gmail.com" maxlength="254" required>
+          <button class="button button-primary" id="submit-button" type="submit">신청</button>
+        </div>
+        <label class="consent">
+          <input id="consent" type="checkbox" required>
+          <span>비공개 테스트 초대 목적으로 이메일을 수집·이용하는 데 동의합니다.</span>
+        </label>
+        <p class="privacy-note">이메일은 이 기기에서 암호화되어 전송되며, 스프레드시트에는 암호문만 저장됩니다. <a href="privacy.html">수집 안내</a></p>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <strong>REP<span>:</span>ORT</strong>
+    <p>운동을 기록하고, 함께 성장하세요.</p>
+    <a href="https://rep-ort.vercel.app/" rel="noopener">웹 앱 둘러보기</a>
+  </footer>
+</body>
+</html>
