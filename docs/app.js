@@ -316,7 +316,7 @@
         inviteCompleteTitle.textContent = "테스트 초대를 순차 처리하고 있어요.";
         inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대가 완료되었습니다. 이후 신청은 순서대로 처리됩니다.`;
       } else {
-        inviteCompleteTitle.textContent = "여기까지 테스트 초대가 완료됐어요.";
+        inviteCompleteTitle.textContent = "테스트 초대가 완료됐어요 🎉";
         inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대 처리가 완료되었습니다.`;
       }
       inviteCompleteCard.hidden = false;
