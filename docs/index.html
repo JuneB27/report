@@ -13,15 +13,46 @@
   <link rel="canonical" href="https://juneb27.github.io/report/?mode=invite">
   <title>REP:ORT</title>
   <link rel="icon" href="assets/app-icon.png">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.2/kakao.min.js"
           integrity="sha384-zt/G7/KfaRQ9dT/QIkS0ujMtzouJqzuSJcXVQu50x0rl/+mD1dc70AeOejVbMD9E"
           crossorigin="anonymous" defer></script>
   <script src="config.js" defer></script>
-  <script src="app.js?v=10" defer></script>
+  <script src="app.js?v=11" defer></script>
 </head>
 <body>
   <main>
+    <section class="shared-record-preview" id="shared-record-preview" hidden aria-live="polite">
+      <div class="shared-record-heading">
+        <p class="eyebrow">SHARED WORKOUT</p>
+        <h2>함께 응원할 기록이에요.</h2>
+        <p id="shared-record-status">인증 기록을 불러오고 있어요.</p>
+      </div>
+      <article class="shared-record-card" id="shared-record-card" hidden>
+        <header class="shared-record-author">
+          <span class="shared-record-avatar" id="shared-record-avatar" aria-hidden="true">R</span>
+          <span>
+            <strong id="shared-record-nickname">REP:ORT</strong>
+            <small id="shared-record-meta"></small>
+          </span>
+        </header>
+        <img class="shared-record-photo" id="shared-record-photo" alt="공유된 운동 인증 사진">
+        <p class="shared-record-note" id="shared-record-note"></p>
+        <div class="shared-record-actions">
+          <button class="shared-record-heart" id="shared-record-heart" type="button" aria-expanded="false">
+            <span aria-hidden="true">♥</span> <span id="shared-record-like-count">0</span>
+          </button>
+          <span class="shared-record-comments" id="shared-record-comment-count">댓글 0</span>
+          <button class="button button-record" id="shared-record-app-button" type="button">앱에서 기록 열기</button>
+        </div>
+        <div class="shared-record-invite" id="shared-record-invite" hidden>
+          <strong>이 응원은 REP:ORT 앱에서 전할 수 있어요.</strong>
+          <p>테스터로 참여하고 하트를 보내보세요.</p>
+          <a class="button button-primary" href="#apply">테스터 신청하고 하트 보내기</a>
+        </div>
+      </article>
+    </section>
+
     <section class="hero" aria-labelledby="hero-title">
       <img class="app-icon" src="assets/app-icon.png" width="108" height="108" alt="REP:ORT 앱 아이콘">
       <p class="eyebrow">PRIVATE TEST</p>
@@ -55,6 +86,7 @@
             <div class="report-share-target" aria-hidden="true">
               <img src="assets/app-icon.png" alt="">
               <strong>REP:ORT</strong>
+              <span>바로 공유하기</span>
             </div>
           </div>
         </div>

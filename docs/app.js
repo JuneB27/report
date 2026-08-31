@@ -7,6 +7,19 @@
   const submitButton = document.querySelector("#submit-button");
   const shareButton = document.querySelector("#kakaotalk-sharing-btn");
   const openSharedRecord = document.querySelector("#open-shared-record");
+  const sharedRecordPreview = document.querySelector("#shared-record-preview");
+  const sharedRecordCard = document.querySelector("#shared-record-card");
+  const sharedRecordStatus = document.querySelector("#shared-record-status");
+  const sharedRecordAvatar = document.querySelector("#shared-record-avatar");
+  const sharedRecordNickname = document.querySelector("#shared-record-nickname");
+  const sharedRecordMeta = document.querySelector("#shared-record-meta");
+  const sharedRecordPhoto = document.querySelector("#shared-record-photo");
+  const sharedRecordNote = document.querySelector("#shared-record-note");
+  const sharedRecordLikeCount = document.querySelector("#shared-record-like-count");
+  const sharedRecordCommentCount = document.querySelector("#shared-record-comment-count");
+  const sharedRecordHeart = document.querySelector("#shared-record-heart");
+  const sharedRecordAppButton = document.querySelector("#shared-record-app-button");
+  const sharedRecordInvite = document.querySelector("#shared-record-invite");
   const status = document.querySelector("#status");
   const inviteCompleteCard = document.querySelector("#invite-complete-card");
   const inviteCompleteDetail = document.querySelector("#invite-complete-detail");
@@ -16,8 +29,12 @@
   const pageParams = new URLSearchParams(location.search);
   const pageMode = pageParams.get("mode");
   const sharedPostId = pageParams.get("post");
-  if (openSharedRecord && pageMode === "record" && /^\d+$/.test(sharedPostId || "")) {
-    openSharedRecord.href = `report://record?post=${encodeURIComponent(sharedPostId)}`;
+  const isSharedRecord = pageMode === "record" && /^\d+$/.test(sharedPostId || "");
+  const sharedRecordDeepLink = isSharedRecord
+    ? `report://record?post=${encodeURIComponent(sharedPostId)}`
+    : "";
+  if (openSharedRecord && isSharedRecord) {
+    openSharedRecord.href = sharedRecordDeepLink;
     openSharedRecord.hidden = false;
   }
 
@@ -28,6 +45,104 @@
     target.searchParams.set("mode", "invite");
     return target.href;
   };
+
+  const decodeFirestoreValue = (value) => {
+    if (!value || typeof value !== "object") return null;
+    if (Object.prototype.hasOwnProperty.call(value, "stringValue")) return value.stringValue;
+    if (Object.prototype.hasOwnProperty.call(value, "integerValue")) return Number(value.integerValue);
+    if (Object.prototype.hasOwnProperty.call(value, "doubleValue")) return Number(value.doubleValue);
+    if (Object.prototype.hasOwnProperty.call(value, "booleanValue")) return Boolean(value.booleanValue);
+    if (Object.prototype.hasOwnProperty.call(value, "timestampValue")) return value.timestampValue;
+    if (Object.prototype.hasOwnProperty.call(value, "nullValue")) return null;
+    if (value.arrayValue) return (value.arrayValue.values || []).map(decodeFirestoreValue);
+    if (value.mapValue) return decodeFirestoreFields(value.mapValue.fields || {});
+    return null;
+  };
+
+  const decodeFirestoreFields = (fields) => Object.fromEntries(
+    Object.entries(fields || {}).map(([key, value]) => [key, decodeFirestoreValue(value)])
+  );
+
+  const typeLabel = (types) => {
+    const labels = { strength: "💪 근력", cardio: "🏃 유산소", other: "✨ 기타" };
+    return (Array.isArray(types) ? types : []).map((type) => labels[type] || type).filter(Boolean).join(" · ");
+  };
+
+  const revealSharedRecordInvite = () => {
+    if (!sharedRecordInvite || !sharedRecordHeart) return;
+    sharedRecordInvite.hidden = false;
+    sharedRecordHeart.setAttribute("aria-expanded", "true");
+    sharedRecordHeart.classList.remove("is-inviting");
+    requestAnimationFrame(() => sharedRecordHeart.classList.add("is-inviting"));
+    window.setTimeout(() => sharedRecordInvite.scrollIntoView({ behavior: "smooth", block: "nearest" }), 180);
+  };
+
+  const openSharedRecordInApp = () => {
+    if (!sharedRecordDeepLink) return;
+    let appOpened = false;
+    const markOpened = () => { if (document.visibilityState === "hidden") appOpened = true; };
+    document.addEventListener("visibilitychange", markOpened, { once: true });
+    window.location.href = sharedRecordDeepLink;
+    window.setTimeout(() => {
+      if (!appOpened && document.visibilityState === "visible") revealSharedRecordInvite();
+    }, 1100);
+  };
+
+  const renderSharedRecord = (post) => {
+    if (!sharedRecordCard || !sharedRecordStatus) return;
+    const nickname = String(post.nickname || "REP:ORT").trim() || "REP:ORT";
+    const likes = Array.isArray(post.likes) ? post.likes.length : 0;
+    const comments = Array.isArray(post.comments) ? post.comments.length : 0;
+    const parts = [post.date, post.time, typeLabel(post.types)].filter(Boolean);
+    sharedRecordNickname.textContent = nickname;
+    sharedRecordAvatar.textContent = nickname.slice(0, 1).toUpperCase();
+    sharedRecordMeta.textContent = parts.join(" · ");
+    sharedRecordLikeCount.textContent = String(likes);
+    sharedRecordCommentCount.textContent = `댓글 ${comments}`;
+    sharedRecordNote.textContent = post.note ? `# ${String(post.note).replace(/^#\s*/, "")}` : "";
+    sharedRecordNote.hidden = !post.note;
+
+    const photo = String(post.photo || "");
+    if (/^(data:image\/|https:\/\/)/i.test(photo)) {
+      sharedRecordPhoto.src = photo;
+      sharedRecordPhoto.hidden = false;
+    } else {
+      sharedRecordPhoto.removeAttribute("src");
+      sharedRecordPhoto.hidden = true;
+    }
+    sharedRecordStatus.textContent = "앱이 설치되어 있지 않아 웹에서 기록을 보여드려요.";
+    sharedRecordCard.hidden = false;
+  };
+
+  const setupSharedRecordPreview = async () => {
+    if (!isSharedRecord || !sharedRecordPreview) return;
+    document.body.classList.add("record-mode");
+    sharedRecordPreview.hidden = false;
+    if (sharedRecordHeart) sharedRecordHeart.addEventListener("click", revealSharedRecordInvite);
+    if (sharedRecordAppButton) sharedRecordAppButton.addEventListener("click", openSharedRecordInApp);
+    if (openSharedRecord) openSharedRecord.addEventListener("click", (event) => {
+      event.preventDefault();
+      openSharedRecordInApp();
+    });
+
+    if (!config.firebaseProjectId || !config.firebaseWebApiKey) {
+      sharedRecordStatus.textContent = "웹 기록 조회 설정을 확인해 주세요.";
+      return;
+    }
+    try {
+      const endpoint = new URL(`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(config.firebaseProjectId)}/databases/(default)/documents/submissions/${encodeURIComponent(sharedPostId)}`);
+      endpoint.searchParams.set("key", config.firebaseWebApiKey);
+      const response = await fetch(endpoint.href, { headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error(`Firestore ${response.status}`);
+      const documentData = await response.json();
+      renderSharedRecord(decodeFirestoreFields(documentData.fields || {}));
+    } catch (_) {
+      sharedRecordStatus.textContent = "기록을 불러오지 못했습니다. 앱에서 다시 확인해 주세요.";
+      if (sharedRecordAppButton) sharedRecordAppButton.hidden = false;
+    }
+  };
+
+  setupSharedRecordPreview();
 
   const setupScrollReveal = () => {
     const targets = [...document.querySelectorAll("[data-reveal]")];
