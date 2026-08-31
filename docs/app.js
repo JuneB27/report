@@ -9,11 +9,21 @@
   const openSharedRecord = document.querySelector("#open-shared-record");
   const status = document.querySelector("#status");
 
-  const sharedPostId = new URLSearchParams(location.search).get("post");
-  if (openSharedRecord && /^\d+$/.test(sharedPostId || "")) {
+  const pageParams = new URLSearchParams(location.search);
+  const pageMode = pageParams.get("mode");
+  const sharedPostId = pageParams.get("post");
+  if (openSharedRecord && pageMode === "record" && /^\d+$/.test(sharedPostId || "")) {
     openSharedRecord.href = `report://record?post=${encodeURIComponent(sharedPostId)}`;
     openSharedRecord.hidden = false;
   }
+
+  const invitationUrl = () => {
+    const target = new URL(config.landingUrl || location.origin + location.pathname, location.href);
+    target.search = "";
+    target.hash = "";
+    target.searchParams.set("mode", "invite");
+    return target.href;
+  };
 
   const setupScrollReveal = () => {
     const targets = [...document.querySelectorAll("[data-reveal]")];
@@ -121,7 +131,7 @@
     const shareData = {
       title: "REP:ORT 비공개 테스트",
       text: "완벽한 운동보다 오늘 한 운동이 낫습니다. REP:ORT를 먼저 만나보세요.",
-      url: config.landingUrl || location.href
+      url: invitationUrl()
     };
     if (navigator.share) {
       await navigator.share(shareData);
@@ -135,13 +145,11 @@
     try {
       if (window.Kakao && config.kakaoJavaScriptKey) {
         if (!Kakao.isInitialized()) Kakao.init(config.kakaoJavaScriptKey);
-        const landingUrl = config.landingUrl || location.origin + location.pathname;
-        const applyUrl = `${landingUrl.replace(/#.*$/, "")}#apply`;
-        const invitationUrl = new URL(landingUrl, location.href);
-        invitationUrl.searchParams.set("source", "kakao-invite");
-        const appLink = {
-          mobileWebUrl: invitationUrl.href,
-          webUrl: invitationUrl.href
+        const inviteUrl = invitationUrl();
+        const applyUrl = `${inviteUrl}#apply`;
+        const inviteLink = {
+          mobileWebUrl: inviteUrl,
+          webUrl: inviteUrl
         };
         Kakao.Share.sendDefault({
           objectType: "feed",
@@ -149,16 +157,12 @@
             title: "REP:ORT 비공개 테스트",
             description: "운동을 사진으로 기록하고 함께 꾸준해지는 피트니스 커뮤니티",
             imageUrl: config.imageUrl,
-            link: appLink
+            link: inviteLink
           },
           buttons: [
             {
-              title: "테스트 신청하기",
+              title: "테스터 모집 페이지 열기",
               link: { mobileWebUrl: applyUrl, webUrl: applyUrl }
-            },
-            {
-              title: "REP:ORT 앱 열기",
-              link: appLink
             }
           ]
         });
