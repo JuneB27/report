@@ -243,6 +243,74 @@ h1 span, footer span { color: var(--yellow); }
   width: min(100%, 460px);
 }
 
+#invite-complete-card[hidden],
+#play-store-card[hidden] {
+  display: none;
+}
+
+.invite-complete-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  align-items: center;
+  margin: 10px 0 14px;
+  padding: clamp(24px, 6vw, 38px);
+  border: 1px solid rgba(255, 183, 25, .3);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 0 0, rgba(255, 183, 25, .14), transparent 45%),
+    var(--surface);
+  box-shadow: 0 22px 64px rgba(0, 0, 0, .3);
+}
+
+.complete-mark {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 18px;
+  background: var(--yellow);
+  color: #111;
+  font-size: 1.8rem;
+  font-weight: 900;
+  box-shadow: 0 10px 30px rgba(255, 183, 25, .22);
+}
+
+.invite-complete-card h2 { margin-bottom: 7px; }
+.invite-complete-card p:last-child { margin-bottom: 0; color: var(--muted); }
+
+.play-store-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--surface-2), var(--surface));
+  color: var(--text);
+  text-decoration: none;
+  transition: transform .2s ease, border-color .2s ease, background .2s ease;
+}
+
+.play-store-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 183, 25, .5);
+  background: linear-gradient(135deg, #292921, var(--surface));
+}
+
+.play-store-card > img {
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .35);
+}
+
+.play-store-copy { display: grid; min-width: 0; }
+.play-store-copy small { color: var(--yellow); font-size: .68rem; font-weight: 900; letter-spacing: .13em; }
+.play-store-copy strong { margin: 2px 0; font-size: 1.08rem; }
+.play-store-copy > span { color: var(--muted); font-size: .86rem; }
+.play-store-arrow { color: var(--yellow); font-size: 1.6rem; font-weight: 300; }
+
 .feature-card, .apply-card {
   overflow: hidden;
   margin-bottom: 24px;
@@ -315,6 +383,11 @@ footer a { color: var(--yellow); }
   .apply-card { grid-template-columns: 1fr; gap: 16px; }
   .field-row { grid-template-columns: 1fr; }
   .field-row .button { width: 100%; }
+  .invite-complete-card { grid-template-columns: 1fr; }
+  .complete-mark { width: 52px; height: 52px; border-radius: 16px; }
+  .play-store-card { grid-template-columns: auto 1fr; }
+  .play-store-arrow { display: none; }
+  .play-store-copy > span { font-size: .79rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

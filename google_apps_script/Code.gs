@@ -1,20 +1,24 @@
 const SHEET_NAME = "TesterRequests";
+const HEADERS = ["received_at", "version", "algorithm", "ciphertext", "source", "complete"];
+const COMPLETE_VALUE = "complete";
 
 function setup() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   if (!spreadsheet) throw new Error("Google Sheet의 확장 프로그램 > Apps Script에서 실행해 주세요.");
 
   PropertiesService.getScriptProperties().setProperty("SPREADSHEET_ID", spreadsheet.getId());
-  let sheet = spreadsheet.getSheetByName(SHEET_NAME);
-  if (!sheet) sheet = spreadsheet.insertSheet(SHEET_NAME);
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(["received_at", "version", "algorithm", "ciphertext", "source"]);
-    sheet.setFrozenRows(1);
-  }
+  const sheet = getOrCreateSheet_(spreadsheet);
+  ensureSheetColumns_(sheet);
 }
 
-function doGet() {
-  return jsonResponse_({ ok: true, service: "REPORT tester application" });
+function doGet(e) {
+  try {
+    const action = String(e && e.parameter && e.parameter.action || "health");
+    if (action === "invite-status") return response_(getInviteStatus_(), e);
+    return response_({ ok: true, service: "REPORT tester application" }, e);
+  } catch (error) {
+    return response_({ ok: false, error: String(error && error.message || error) }, e);
+  }
 }
 
 function doPost(e) {
@@ -24,24 +28,91 @@ function doPost(e) {
     const payload = JSON.parse((e.postData && e.postData.contents) || "{}");
     validatePayload_(payload);
 
-    const spreadsheetId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
-    if (!spreadsheetId) throw new Error("setup()을 먼저 실행해 주세요.");
-    const sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName(SHEET_NAME);
-    if (!sheet) throw new Error("신청 시트를 찾을 수 없습니다.");
+    const sheet = getConfiguredSheet_();
+    const headers = ensureSheetColumns_(sheet);
+    const values = {
+      received_at: new Date(),
+      version: Number(payload.version),
+      algorithm: payload.algorithm,
+      ciphertext: payload.ciphertext,
+      source: payload.source || "unknown",
+      complete: ""
+    };
 
-    sheet.appendRow([
-      new Date(),
-      Number(payload.version),
-      payload.algorithm,
-      payload.ciphertext,
-      payload.source || "unknown"
-    ]);
-    return jsonResponse_({ ok: true });
+    sheet.appendRow(headers.map(function (header) {
+      return Object.prototype.hasOwnProperty.call(values, header) ? values[header] : "";
+    }));
+    return response_({ ok: true }, e);
   } catch (error) {
-    return jsonResponse_({ ok: false, error: String(error && error.message || error) });
+    return response_({ ok: false, error: String(error && error.message || error) }, e);
   } finally {
     try { lock.releaseLock(); } catch (_) {}
   }
+}
+
+function getInviteStatus_() {
+  const sheet = getConfiguredSheet_();
+  const headers = ensureSheetColumns_(sheet);
+  const receivedAtColumn = headers.indexOf("received_at") + 1;
+  const completeColumn = headers.indexOf("complete") + 1;
+  const rowCount = Math.max(0, sheet.getLastRow() - 1);
+
+  if (!rowCount || !receivedAtColumn || !completeColumn) {
+    return { ok: true, completeThrough: null };
+  }
+
+  const receivedValues = sheet.getRange(2, receivedAtColumn, rowCount, 1).getValues();
+  const completeValues = sheet.getRange(2, completeColumn, rowCount, 1).getDisplayValues();
+  let latestCompletedAt = null;
+
+  for (let index = 0; index < rowCount; index += 1) {
+    const marker = String(completeValues[index][0] || "").trim().toLowerCase();
+    if (marker !== COMPLETE_VALUE) continue;
+
+    const receivedAt = receivedValues[index][0];
+    const parsed = receivedAt instanceof Date ? receivedAt : new Date(receivedAt);
+    if (Number.isNaN(parsed.getTime())) continue;
+    if (!latestCompletedAt || parsed > latestCompletedAt) latestCompletedAt = parsed;
+  }
+
+  return {
+    ok: true,
+    completeThrough: latestCompletedAt ? latestCompletedAt.toISOString() : null
+  };
+}
+
+function getConfiguredSheet_() {
+  const spreadsheetId = PropertiesService.getScriptProperties().getProperty("SPREADSHEET_ID");
+  if (!spreadsheetId) throw new Error("setup()을 먼저 실행해 주세요.");
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  return getOrCreateSheet_(spreadsheet);
+}
+
+function getOrCreateSheet_(spreadsheet) {
+  let sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  if (!sheet) sheet = spreadsheet.insertSheet(SHEET_NAME);
+  return sheet;
+}
+
+function ensureSheetColumns_(sheet) {
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+    sheet.setFrozenRows(1);
+    return HEADERS.slice();
+  }
+
+  let lastColumn = Math.max(1, sheet.getLastColumn());
+  let headers = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0]
+    .map(function (value) { return String(value || "").trim(); });
+
+  HEADERS.forEach(function (requiredHeader) {
+    if (headers.indexOf(requiredHeader) !== -1) return;
+    lastColumn += 1;
+    sheet.getRange(1, lastColumn).setValue(requiredHeader);
+    headers.push(requiredHeader);
+  });
+  sheet.setFrozenRows(1);
+  return headers;
 }
 
 function validatePayload_(payload) {
@@ -54,8 +125,12 @@ function validatePayload_(payload) {
   if (payload.source && String(payload.source).length > 80) throw new Error("source 값이 너무 깁니다.");
 }
 
-function jsonResponse_(body) {
+function response_(body, e) {
+  const callback = String(e && e.parameter && e.parameter.callback || "");
+  if (callback && /^[A-Za-z_$][0-9A-Za-z_$.]{0,80}$/.test(callback)) {
+    return ContentService.createTextOutput(callback + "(" + JSON.stringify(body) + ");")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return ContentService.createTextOutput(JSON.stringify(body))
     .setMimeType(ContentService.MimeType.JSON);
 }
-

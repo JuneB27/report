@@ -8,6 +8,10 @@
   const shareButton = document.querySelector("#kakaotalk-sharing-btn");
   const openSharedRecord = document.querySelector("#open-shared-record");
   const status = document.querySelector("#status");
+  const inviteCompleteCard = document.querySelector("#invite-complete-card");
+  const inviteCompleteDetail = document.querySelector("#invite-complete-detail");
+  const playStoreCard = document.querySelector("#play-store-card");
+  const APPLICATION_RECEIVED_AT_KEY = "report.testerApplication.receivedAt.v1";
 
   const pageParams = new URLSearchParams(location.search);
   const pageMode = pageParams.get("mode");
@@ -119,6 +123,76 @@
     status.className = `status ${kind}`.trim();
   };
 
+  const readStoredApplicationTime = () => {
+    try {
+      return localStorage.getItem(APPLICATION_RECEIVED_AT_KEY);
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const storeApplicationTime = (value) => {
+    try {
+      localStorage.setItem(APPLICATION_RECEIVED_AT_KEY, value);
+    } catch (_) {}
+  };
+
+  const requestInviteStatus = () => new Promise((resolve, reject) => {
+    if (!config.appsScriptEndpoint) {
+      reject(new Error("초대 확인 주소가 설정되지 않았습니다."));
+      return;
+    }
+
+    const callbackName = `__reportInviteStatus_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const script = document.createElement("script");
+    const timeoutId = window.setTimeout(() => finish(new Error("초대 확인 시간이 초과되었습니다.")), 10000);
+
+    const cleanup = () => {
+      window.clearTimeout(timeoutId);
+      script.remove();
+      try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+    };
+    const finish = (error, value) => {
+      cleanup();
+      if (error) reject(error);
+      else resolve(value);
+    };
+
+    window[callbackName] = (payload) => finish(null, payload);
+    script.onerror = () => finish(new Error("초대 상태를 확인하지 못했습니다."));
+    const endpoint = new URL(config.appsScriptEndpoint);
+    endpoint.searchParams.set("action", "invite-status");
+    endpoint.searchParams.set("callback", callbackName);
+    endpoint.searchParams.set("_", String(Date.now()));
+    script.src = endpoint.href;
+    document.head.appendChild(script);
+  });
+
+  const refreshInviteCompletion = async () => {
+    const applicationTime = readStoredApplicationTime();
+    if (!applicationTime || !inviteCompleteCard || !playStoreCard) return;
+
+    try {
+      const result = await requestInviteStatus();
+      if (!result || !result.ok || !result.completeThrough) return;
+      const submittedAt = Date.parse(applicationTime);
+      const completeThrough = Date.parse(result.completeThrough);
+      if (!Number.isFinite(submittedAt) || !Number.isFinite(completeThrough) || submittedAt > completeThrough) return;
+
+      const formatted = new Intl.DateTimeFormat("ko-KR", {
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      }).format(new Date(completeThrough));
+      inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대 처리가 완료되었습니다. 등록하신 Google 계정으로 앱을 설치해 주세요.`;
+      inviteCompleteCard.hidden = false;
+      playStoreCard.hidden = false;
+    } catch (_) {
+      // 완료 상태 확인 실패는 신청/공유 기능을 방해하지 않도록 조용히 무시합니다.
+    }
+  };
+
   const bytesToBase64 = (bytes) => {
     let binary = "";
     for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
@@ -168,6 +242,7 @@
     submitButton.disabled = true;
     submitButton.textContent = "암호화 중";
     try {
+      const submittedAt = new Date().toISOString();
       const ciphertext = await encryptApplication(emailInput.value);
       await fetch(config.appsScriptEndpoint, {
         method: "POST",
@@ -180,8 +255,10 @@
           source: "github-pages"
         })
       });
+      storeApplicationTime(submittedAt);
       form.reset();
       setStatus("신청을 안전하게 전송했습니다. 테스트 초대를 기다려 주세요!", "success");
+      refreshInviteCompletion();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "신청을 전송하지 못했습니다.", "error");
     } finally {
@@ -245,4 +322,8 @@
   };
 
   setupKakaoShareButton();
+  refreshInviteCompletion();
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refreshInviteCompletion();
+  });
 })();
