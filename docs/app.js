@@ -8,6 +8,32 @@
   const shareButton = document.querySelector("#kakao-share");
   const status = document.querySelector("#status");
 
+  const setupScrollReveal = () => {
+    const targets = [...document.querySelectorAll("[data-reveal]")];
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!targets.length || reduceMotion || !("IntersectionObserver" in window)) return;
+
+    targets.forEach((element, index) => {
+      element.classList.add("reveal-on-scroll");
+      element.style.setProperty("--reveal-delay", `${Math.min(index * 70, 140)}ms`);
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      });
+    }, {
+      threshold: 0.14,
+      rootMargin: "0px 0px -10% 0px"
+    });
+
+    targets.forEach((element) => observer.observe(element));
+  };
+
+  setupScrollReveal();
+
   const setStatus = (message, kind = "") => {
     status.textContent = message;
     status.className = `status ${kind}`.trim();
