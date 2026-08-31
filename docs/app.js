@@ -5,7 +5,7 @@
   const form = document.querySelector("#tester-form");
   const emailInput = document.querySelector("#email");
   const submitButton = document.querySelector("#submit-button");
-  const shareButton = document.querySelector("#kakao-share");
+  const shareButton = document.querySelector("#kakaotalk-sharing-btn");
   const openSharedRecord = document.querySelector("#open-shared-record");
   const status = document.querySelector("#status");
 
@@ -50,6 +50,69 @@
   };
 
   setupScrollReveal();
+
+  const setupScrollStories = () => {
+    const scenes = [...document.querySelectorAll("[data-scroll-scene]")];
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!scenes.length || reduceMotion) return;
+
+    const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+    const easeOutCubic = (value) => 1 - Math.pow(1 - value, 3);
+    let scheduled = false;
+
+    const update = () => {
+      scheduled = false;
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+      scenes.forEach((scene) => {
+        const rect = scene.getBoundingClientRect();
+        const distance = Math.max(1, rect.height - viewportHeight * .34);
+        const progress = clamp((viewportHeight * .82 - rect.top) / distance);
+        const screen = scene.querySelector(".story-screen");
+        if (!screen) return;
+
+        if (scene.dataset.scrollScene === "love") {
+          const heart = scene.querySelector(".story-heart");
+          const warmth = scene.querySelector(".story-warmth");
+          const eased = easeOutCubic(progress);
+          const spring = Math.sin(progress * Math.PI * 4.2) * (1 - progress) * .11;
+          const x = (1 - eased) * screen.clientWidth * 1.08;
+          const scale = .7 + eased * .3 + spring;
+          const rotate = (1 - eased) * 8;
+          if (heart) {
+            heart.style.opacity = clamp((progress - .04) / .38).toFixed(3);
+            heart.style.transform = `translate3d(calc(-50% + ${x.toFixed(1)}px), -50%, 0) scale(${scale.toFixed(3)}) rotate(${rotate.toFixed(2)}deg)`;
+          }
+          if (warmth) warmth.style.opacity = (.23 * eased).toFixed(3);
+          return;
+        }
+
+        const sheet = scene.querySelector(".story-share-sheet");
+        const dim = scene.querySelector(".story-share-dim");
+        const reportTarget = scene.querySelector(".report-share-target");
+        const sheetProgress = easeOutCubic(clamp((progress - .03) / .76));
+        const targetProgress = easeOutCubic(clamp((progress - .58) / .42));
+        if (sheet) sheet.style.transform = `translate3d(0, ${((1 - sheetProgress) * 108).toFixed(2)}%, 0)`;
+        if (dim) dim.style.opacity = (.58 * sheetProgress).toFixed(3);
+        if (reportTarget) {
+          reportTarget.style.opacity = targetProgress.toFixed(3);
+          reportTarget.style.transform = `translate3d(-50%, ${(64 - targetProgress * 100).toFixed(1)}px, 0) scale(${(.88 + targetProgress * .18).toFixed(3)})`;
+        }
+      });
+    };
+
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(update);
+    };
+
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    schedule();
+  };
+
+  setupScrollStories();
 
   const setStatus = (message, kind = "") => {
     status.textContent = message;
@@ -141,37 +204,45 @@
     setStatus("테스트 신청 링크를 복사했습니다.", "success");
   };
 
-  shareButton.addEventListener("click", async () => {
+  const setupKakaoShareButton = () => {
+    if (!shareButton) return;
     try {
-      if (window.Kakao && config.kakaoJavaScriptKey) {
-        if (!Kakao.isInitialized()) Kakao.init(config.kakaoJavaScriptKey);
-        const inviteUrl = invitationUrl();
-        const webOnlyLink = {
-          mobileWebUrl: inviteUrl,
-          webUrl: inviteUrl
-        };
-        Kakao.Share.sendDefault({
-          objectType: "feed",
-          content: {
-            title: "REP:ORT 비공개 테스트",
-            description: "운동을 사진으로 기록하고 함께 꾸준해지는 피트니스 커뮤니티",
-            imageUrl: config.imageUrl,
+      if (!window.Kakao || !config.kakaoJavaScriptKey) throw new Error("Kakao SDK unavailable");
+      if (!Kakao.isInitialized()) Kakao.init(config.kakaoJavaScriptKey);
+      const inviteUrl = invitationUrl();
+      const webOnlyLink = {
+        mobileWebUrl: inviteUrl,
+        webUrl: inviteUrl
+      };
+      Kakao.Share.createDefaultButton({
+        container: "#kakaotalk-sharing-btn",
+        objectType: "feed",
+        content: {
+          title: "REP:ORT 비공개 테스트",
+          description: "운동을 사진으로 기록하고 함께 꾸준해지는 피트니스 커뮤니티",
+          imageUrl: config.imageUrl,
+          link: { ...webOnlyLink }
+        },
+        buttons: [
+          {
+            title: "1초 만에 REPORT 초대 등록 하러 가기",
             link: { ...webOnlyLink }
-          },
-          buttons: [
-            {
-              title: "테스터 모집 페이지 열기",
-              link: { ...webOnlyLink }
-            }
-          ]
-        });
-        return;
-      }
-      await fallbackShare();
-    } catch (error) {
-      if (error && error.name !== "AbortError") {
-        setStatus("공유 창을 열지 못했습니다. 잠시 후 다시 시도해 주세요.", "error");
-      }
+          }
+        ]
+      });
+    } catch (setupError) {
+      shareButton.addEventListener("click", async (event) => {
+        event.preventDefault();
+        try {
+          await fallbackShare();
+        } catch (error) {
+          if (error && error.name !== "AbortError") {
+            setStatus("공유 창을 열지 못했습니다. 잠시 후 다시 시도해 주세요.", "error");
+          }
+        }
+      });
     }
-  });
+  };
+
+  setupKakaoShareButton();
 })();

@@ -4,21 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0b0e">
-  <meta name="description" content="운동을 사진으로 인증하고 함께 꾸준해지는 REP:ORT 비공개 테스트에 참여하세요.">
+  <meta name="description" content="안드로이드 REP:ORT 앱으로 편리하게 이용하세요.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="REP:ORT 비공개 테스트">
-  <meta property="og:description" content="완벽한 운동보다 오늘 한 운동이 낫습니다. REP:ORT를 먼저 만나보세요.">
+  <meta property="og:title" content="REP:ORT">
+  <meta property="og:description" content="완벽한 운동보다 오늘 한 운동이 낫습니다. REP:ORT 앱을 설치해보세요.">
   <meta property="og:image" content="https://juneb27.github.io/report/assets/feature-graphic.png">
   <meta property="og:url" content="https://juneb27.github.io/report/?mode=invite">
   <link rel="canonical" href="https://juneb27.github.io/report/?mode=invite">
-  <title>REP:ORT 비공개 테스트</title>
+  <title>REP:ORT</title>
   <link rel="icon" href="assets/app-icon.png">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=4">
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.2/kakao.min.js"
           integrity="sha384-zt/G7/KfaRQ9dT/QIkS0ujMtzouJqzuSJcXVQu50x0rl/+mD1dc70AeOejVbMD9E"
           crossorigin="anonymous" defer></script>
   <script src="config.js" defer></script>
-  <script src="app.js?v=8" defer></script>
+  <script src="app.js?v=9" defer></script>
 </head>
 <body>
   <main>
@@ -27,14 +27,38 @@
       <p class="eyebrow">PRIVATE TEST</p>
       <h1 id="hero-title" aria-label="REP:ORT">REP<span>:</span>ORT</h1>
       <p class="lead">완벽한 운동보다<br>오늘 한 운동이 낫습니다.</p>
-      <p class="sublead">사진으로 운동을 남기고, 서로의 꾸준함을 응원하는 피트니스 커뮤니티를 먼저 만나보세요.</p>
+      <p class="sublead">사진으로 운동을 남기고, 서로의 꾸준함을 응원하는 피트니스 커뮤니티를 앱으로 만나보세요.</p>
       <div class="hero-actions">
-        <a class="button button-primary" href="#apply">테스트 신청하기</a>
         <a class="button button-record" id="open-shared-record" href="#" hidden>앱에서 기록 열기</a>
-        <button class="button button-kakao" id="kakao-share" type="button">
-          <span aria-hidden="true">💬</span> 카톡으로 초대장 보내기
-        </button>
       </div>
+    </section>
+
+    <section class="story-sequence" aria-label="REP:ORT 앱 모션 미리보기">
+      <article class="scroll-scene" data-scroll-scene="love">
+        <div class="story-sticky">
+          <div class="story-screen story-screen-love">
+            <img class="story-base" src="assets/story-love-base.jpg" alt="REP:ORT 기록 피드 화면">
+            <span class="story-warmth" aria-hidden="true"></span>
+            <img class="story-heart" src="assets/story-love-heart.png" alt="압도님에게 보내는 하트 반응">
+          </div>
+        </div>
+      </article>
+
+      <article class="scroll-scene" data-scroll-scene="share">
+        <div class="story-sticky">
+          <div class="story-screen story-screen-share">
+            <img class="story-base" src="assets/story-share-base.jpg" alt="인증 사진 공유 전 화면">
+            <span class="story-share-dim" aria-hidden="true"></span>
+            <div class="story-share-sheet" aria-hidden="true">
+              <img src="assets/story-share-sheet.jpg" alt="">
+            </div>
+            <div class="report-share-target" aria-hidden="true">
+              <img src="assets/app-icon.png" alt="">
+              <strong>REP:ORT</strong>
+            </div>
+          </div>
+        </div>
+      </article>
     </section>
 
     <section class="feature-card" data-reveal aria-labelledby="features-title">
@@ -68,6 +92,12 @@
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </form>
     </section>
+
+    <div class="bottom-share" data-reveal>
+      <a class="button button-kakao" id="kakaotalk-sharing-btn" href="javascript:;" role="button">
+        <span aria-hidden="true">💬</span> 카톡 초대장 보내기
+      </a>
+    </div>
   </main>
 
   <footer>

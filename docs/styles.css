@@ -85,6 +85,10 @@ h1 span, footer span { color: var(--yellow); }
 .hero-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 
 .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   min-height: 48px;
   padding: 11px 18px;
   border: 0;
@@ -102,6 +106,142 @@ h1 span, footer span { color: var(--yellow); }
 .button-record { border: 1px solid var(--line); background: var(--surface-2); color: var(--text); }
 #open-shared-record[hidden] { display: none; }
 .button-kakao { background: var(--kakao); color: var(--kakao-text); }
+
+.story-sequence {
+  margin: -6svh 0 32px;
+}
+
+.scroll-scene {
+  position: relative;
+  height: 168svh;
+}
+
+.story-sticky {
+  position: sticky;
+  top: 8svh;
+  height: 84svh;
+  display: grid;
+  place-items: center;
+}
+
+.story-screen {
+  position: relative;
+  width: min(100%, calc(78svh * .42890625));
+  max-width: 420px;
+  aspect-ratio: 549 / 1280;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 28px;
+  background: #111116;
+  box-shadow: 0 34px 90px rgba(0, 0, 0, .56);
+  isolation: isolate;
+}
+
+.story-base {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.story-warmth,
+.story-share-dim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.story-warmth {
+  z-index: 1;
+  background: rgba(255, 162, 24, .23);
+  opacity: 0;
+}
+
+.story-heart {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50.5%;
+  width: 78%;
+  height: auto;
+  opacity: 0;
+  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, .34));
+  pointer-events: none;
+  transform-origin: 50% 54%;
+  will-change: transform, opacity;
+}
+
+.story-share-dim {
+  z-index: 1;
+  background: rgba(0, 0, 0, .66);
+  opacity: 0;
+}
+
+.story-share-sheet {
+  position: absolute;
+  z-index: 2;
+  right: 2.5%;
+  bottom: 2%;
+  left: 2.5%;
+  height: 68.5%;
+  overflow: hidden;
+  border-radius: 28px;
+  box-shadow: 0 -22px 54px rgba(0, 0, 0, .42);
+  transform: translate3d(0, 108%, 0);
+  will-change: transform;
+}
+
+.story-share-sheet img {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.report-share-target {
+  position: absolute;
+  z-index: 3;
+  left: 51%;
+  bottom: 8%;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  width: 92px;
+  padding: 8px 7px 7px;
+  border: 1px solid rgba(255, 183, 25, .7);
+  border-radius: 20px;
+  background: rgba(14, 14, 18, .94);
+  color: #fff;
+  opacity: 0;
+  box-shadow: 0 0 0 6px rgba(255, 183, 25, .08), 0 15px 38px rgba(0, 0, 0, .5);
+  transform: translate3d(-50%, 64px, 0) scale(.88);
+  transform-origin: 50% 100%;
+  will-change: transform, opacity;
+}
+
+.report-share-target img {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.report-share-target strong {
+  font-size: .72rem;
+  letter-spacing: -.02em;
+}
+
+.bottom-share {
+  display: flex;
+  justify-content: center;
+  padding: 18px 0 20px;
+}
+
+.bottom-share .button {
+  width: min(100%, 460px);
+}
 
 .feature-card, .apply-card {
   overflow: hidden;
@@ -168,6 +308,10 @@ footer a { color: var(--yellow); }
 
 @media (max-width: 680px) {
   .hero { min-height: 88svh; }
+  .story-sequence { margin-top: -4svh; }
+  .scroll-scene { height: 158svh; }
+  .story-sticky { top: 7svh; height: 86svh; }
+  .story-screen { width: min(100%, calc(80svh * .42890625)); }
   .apply-card { grid-template-columns: 1fr; gap: 16px; }
   .field-row { grid-template-columns: 1fr; }
   .field-row .button { width: 100%; }
@@ -180,5 +324,18 @@ footer a { color: var(--yellow); }
     opacity: 1 !important;
     filter: none !important;
     transform: none !important;
+  }
+  .scroll-scene { height: auto; padding: 18px 0; }
+  .story-sticky { position: relative; top: auto; height: auto; }
+  .story-warmth { opacity: .23 !important; }
+  .story-heart {
+    opacity: 1 !important;
+    transform: translate3d(-50%, -50%, 0) scale(1) !important;
+  }
+  .story-share-dim { opacity: .38 !important; }
+  .story-share-sheet { transform: none !important; }
+  .report-share-target {
+    opacity: 1 !important;
+    transform: translate3d(-50%, -34px, 0) scale(1.04) !important;
   }
 }
