@@ -108,25 +108,29 @@
     try {
       if (window.Kakao && config.kakaoJavaScriptKey) {
         if (!Kakao.isInitialized()) Kakao.init(config.kakaoJavaScriptKey);
+        const landingUrl = config.landingUrl || location.origin + location.pathname;
+        const applyUrl = `${landingUrl.replace(/#.*$/, "")}#apply`;
+        const appLink = {
+          mobileWebUrl: landingUrl,
+          webUrl: landingUrl,
+          androidExecutionParams: { source: "tester-share" }
+        };
         Kakao.Share.sendDefault({
           objectType: "feed",
           content: {
             title: "REP:ORT 비공개 테스트",
             description: "운동을 사진으로 기록하고 함께 꾸준해지는 피트니스 커뮤니티",
             imageUrl: config.imageUrl,
-            link: {
-              mobileWebUrl: config.landingUrl,
-              webUrl: config.landingUrl
-            }
+            link: appLink
           },
           buttons: [
             {
               title: "테스트 신청하기",
-              link: { mobileWebUrl: config.landingUrl, webUrl: config.landingUrl }
+              link: { mobileWebUrl: applyUrl, webUrl: applyUrl }
             },
             {
-              title: "앱 둘러보기",
-              link: { mobileWebUrl: config.webAppUrl, webUrl: config.webAppUrl }
+              title: "REP:ORT 앱 열기",
+              link: appLink
             }
           ]
         });
@@ -140,4 +144,3 @@
     }
   });
 })();
-
