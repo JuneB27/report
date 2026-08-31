@@ -211,8 +211,8 @@
       if (!Kakao.isInitialized()) Kakao.init(config.kakaoJavaScriptKey);
       const inviteUrl = invitationUrl();
       const webOnlyLink = {
-        mobileWebUrl: inviteUrl,
-        webUrl: inviteUrl
+        mobileWebUrl: 'https://juneb27.github.io/report/',
+        webUrl: 'https://juneb27.github.io/report/'
       };
       Kakao.Share.createDefaultButton({
         container: "#kakaotalk-sharing-btn",
