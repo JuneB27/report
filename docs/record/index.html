@@ -60,11 +60,24 @@
       const fallback = new URL("../", location.href);
       fallback.searchParams.set("mode", /^\d+$/.test(postId || "") ? "record" : "invite");
       if (/^\d+$/.test(postId || "")) {
+        params.forEach((value, key) => {
+          if (key !== "mode" && key !== "fallback") fallback.searchParams.set(key, value);
+        });
         fallback.searchParams.set("post", postId);
         fallback.searchParams.set("fallback", "1");
       }
 
       if (!/^\d+$/.test(postId || "")) {
+        location.replace(fallback.href);
+        return;
+      }
+
+      const userAgent = navigator.userAgent || "";
+      const isiOS = /iPad|iPhone|iPod/i.test(userAgent)
+        || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isSafari = /Safari/i.test(userAgent)
+        && !/(Chrome|Chromium|CriOS|FxiOS|EdgiOS|OPR|Android)/i.test(userAgent);
+      if (isiOS || isSafari) {
         location.replace(fallback.href);
         return;
       }

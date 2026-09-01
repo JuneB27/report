@@ -13,12 +13,12 @@
   <link rel="canonical" href="https://juneb27.github.io/report/?mode=invite">
   <title>REP:ORT</title>
   <link rel="icon" href="assets/app-icon.png">
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=9">
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.2/kakao.min.js"
           integrity="sha384-zt/G7/KfaRQ9dT/QIkS0ujMtzouJqzuSJcXVQu50x0rl/+mD1dc70AeOejVbMD9E"
           crossorigin="anonymous" defer></script>
   <script src="config.js?v=3" defer></script>
-  <script src="app.js?v=15" defer></script>
+  <script src="app.js?v=17" defer></script>
 </head>
 <body>
   <main>
@@ -43,11 +43,11 @@
             <span aria-hidden="true">♥</span> <span id="shared-record-like-count">0</span>
           </button>
           <span class="shared-record-comments" id="shared-record-comment-count">댓글 0</span>
-          <button class="button button-record" id="shared-record-app-button" type="button">앱에서 기록 열기</button>
+          <button class="button button-record" id="shared-record-app-button" type="button">응원하기</button>
         </div>
         <div class="shared-record-invite" id="shared-record-invite" hidden>
           <strong>REP:ORT 앱에서 공유된 기록입니다.</strong>
-          <a class="button button-primary" href="#apply">앱 초대 등록하고 바로 응원 보내기 🥳</a>
+          <a class="button button-primary" id="shared-record-invite-button" href="#apply">앱 초대 등록하고 바로 응원 보내기 🥳</a>
         </div>
       </article>
     </section>
@@ -138,13 +138,13 @@
       </a>
     </div>
 
-    <section class="invite-complete-card" id="invite-complete-card" data-reveal hidden
+    <section class="invite-complete-card is-checking" id="invite-complete-card"
              aria-labelledby="invite-complete-title" aria-live="polite">
-      <span class="complete-mark" aria-hidden="true">✓</span>
+      <span class="complete-mark" id="invite-complete-mark" aria-hidden="true">…</span>
       <div>
-        <p class="eyebrow">INVITATION COMPLETE</p>
-        <h2 id="invite-complete-title">초대가 완료되었습니다.</h2>
-        <p id="invite-complete-detail">등록하신 Google 계정으로 REP:ORT를 설치할 수 있습니다.</p>
+        <p class="eyebrow">INVITATION STATUS</p>
+        <h2 id="invite-complete-title">초대 처리 현황</h2>
+        <p id="invite-complete-detail">확인 중…</p>
       </div>
     </section>
 

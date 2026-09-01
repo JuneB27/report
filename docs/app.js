@@ -21,17 +21,26 @@
   const sharedRecordHeart = document.querySelector("#shared-record-heart");
   const sharedRecordAppButton = document.querySelector("#shared-record-app-button");
   const sharedRecordInvite = document.querySelector("#shared-record-invite");
+  const sharedRecordInviteButton = document.querySelector("#shared-record-invite-button");
   const status = document.querySelector("#status");
   const inviteCompleteCard = document.querySelector("#invite-complete-card");
+  const inviteCompleteMark = document.querySelector("#invite-complete-mark");
   const inviteCompleteTitle = document.querySelector("#invite-complete-title");
   const inviteCompleteDetail = document.querySelector("#invite-complete-detail");
   const playStoreCard = document.querySelector("#play-store-card");
   const APPLICATION_RECEIVED_AT_KEY = "report.testerApplication.receivedAt.v1";
+  const SHARED_RECORD_CACHE_PREFIX = "report.sharedRecord.v1.";
 
   const pageParams = new URLSearchParams(location.search);
   const pageMode = pageParams.get("mode");
   const sharedPostId = pageParams.get("post");
   const isSharedRecord = pageMode === "record" && /^\d+$/.test(sharedPostId || "");
+  const userAgent = navigator.userAgent || "";
+  const isiOS = /iPad|iPhone|iPod/i.test(userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isSafari = /Safari/i.test(userAgent)
+    && !/(Chrome|Chromium|CriOS|FxiOS|EdgiOS|OPR|Android)/i.test(userAgent);
+  const androidUnsupported = isiOS || isSafari;
   const sharedRecordDeepLink = isSharedRecord
     ? `report://record?post=${encodeURIComponent(sharedPostId)}`
     : "";
@@ -70,6 +79,71 @@
     return (Array.isArray(types) ? types : []).map((type) => labels[type] || type).filter(Boolean).join(" · ");
   };
 
+  const embeddedSharedRecord = () => {
+    if (!isSharedRecord) return null;
+    const title = String(pageParams.get("title") || "").trim();
+    const photo = String(pageParams.get("image") || "").trim();
+    if (!title && !photo) return null;
+    const count = (name) => Math.min(999, Math.max(0, Number.parseInt(pageParams.get(name) || "0", 10) || 0));
+    return {
+      id: Number(sharedPostId),
+      nickname: title || "REP:ORT",
+      date: String(pageParams.get("date") || "").trim(),
+      time: String(pageParams.get("time") || "").trim(),
+      types: String(pageParams.get("types") || "").split(",").map((value) => value.trim()).filter(Boolean),
+      note: String(pageParams.get("note") || "").trim(),
+      photo,
+      likes: Array.from({ length: count("likes") }),
+      comments: Array.from({ length: count("comments") })
+    };
+  };
+
+  const readCachedSharedRecord = () => {
+    if (!isSharedRecord) return null;
+    try {
+      const cached = JSON.parse(localStorage.getItem(`${SHARED_RECORD_CACHE_PREFIX}${sharedPostId}`) || "null");
+      return cached && Number(cached.id) === Number(sharedPostId) ? cached : null;
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const cacheSharedRecord = (post) => {
+    if (!post || !isSharedRecord) return;
+    try {
+      localStorage.setItem(`${SHARED_RECORD_CACHE_PREFIX}${sharedPostId}`, JSON.stringify({
+        id: Number(sharedPostId),
+        nickname: String(post.nickname || "REP:ORT"),
+        date: String(post.date || ""),
+        time: String(post.time || ""),
+        types: Array.isArray(post.types) ? post.types.slice(0, 6) : [],
+        note: String(post.note || "").slice(0, 200),
+        photo: String(post.photo || ""),
+        likes: Array.isArray(post.likes) ? post.likes.slice(0, 999) : [],
+        comments: Array.isArray(post.comments) ? post.comments.slice(0, 999) : [],
+        cachedAt: Date.now()
+      }));
+    } catch (_) {
+      // 저장 공간이 부족해도 현재 화면 렌더링은 계속합니다.
+    }
+  };
+
+  const applyUnsupportedPlatformMessage = () => {
+    if (!androidUnsupported) return;
+    if (sharedRecordInviteButton) {
+      sharedRecordInviteButton.textContent = "현재는 안드로이드 앱만 지원됩니다 🥺";
+      sharedRecordInviteButton.href = "#";
+      sharedRecordInviteButton.setAttribute("aria-disabled", "true");
+      sharedRecordInviteButton.classList.add("is-platform-disabled");
+      sharedRecordInviteButton.addEventListener("click", (event) => event.preventDefault());
+    }
+    if (submitButton) {
+      submitButton.textContent = "현재는 안드로이드 앱만 지원됩니다 🥺";
+      submitButton.disabled = true;
+      submitButton.classList.add("is-platform-disabled");
+    }
+  };
+
   const revealSharedRecordInvite = () => {
     if (!sharedRecordInvite || !sharedRecordHeart) return;
     sharedRecordInvite.hidden = false;
@@ -81,6 +155,10 @@
 
   const openSharedRecordInApp = () => {
     if (!sharedRecordDeepLink) return;
+    if (androidUnsupported) {
+      revealSharedRecordInvite();
+      return;
+    }
     let appOpened = false;
     const markOpened = () => { if (document.visibilityState === "hidden") appOpened = true; };
     document.addEventListener("visibilitychange", markOpened, { once: true });
@@ -120,6 +198,9 @@
     if (!isSharedRecord || !sharedRecordPreview) return;
     if (pageParams.get("fallback") !== "1") {
       const gateway = new URL("record/", config.landingUrl || location.href);
+      pageParams.forEach((value, key) => {
+        if (key !== "mode" && key !== "fallback") gateway.searchParams.set(key, value);
+      });
       gateway.searchParams.set("post", sharedPostId);
       location.replace(gateway.href);
       return;
@@ -133,6 +214,15 @@
       openSharedRecordInApp();
     });
 
+    const embedded = embeddedSharedRecord();
+    const cached = readCachedSharedRecord();
+    const restored = embedded || cached;
+    if (restored) renderSharedRecord(restored);
+    if (embedded && embedded.photo) {
+      cacheSharedRecord(embedded);
+      return;
+    }
+
     if (!config.firebaseProjectId || !config.firebaseWebApiKey) {
       sharedRecordStatus.textContent = "웹 기록 조회 설정을 확인해 주세요.";
       return;
@@ -140,16 +230,30 @@
     try {
       const endpoint = new URL(`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(config.firebaseProjectId)}/databases/(default)/documents/submissions/${encodeURIComponent(sharedPostId)}`);
       endpoint.searchParams.set("key", config.firebaseWebApiKey);
-      const response = await fetch(endpoint.href, { headers: { Accept: "application/json" } });
-      if (!response.ok) throw new Error(`Firestore ${response.status}`);
+      const response = await fetch(endpoint.href, {
+        cache: "no-store",
+        headers: { Accept: "application/json" }
+      });
+      if (!response.ok) {
+        const error = new Error(`Firestore ${response.status}`);
+        error.status = response.status;
+        throw error;
+      }
       const documentData = await response.json();
-      renderSharedRecord(decodeFirestoreFields(documentData.fields || {}));
-    } catch (_) {
-      sharedRecordStatus.textContent = "기록을 불러오지 못했습니다. 앱에서 다시 확인해 주세요.";
+      const post = decodeFirestoreFields(documentData.fields || {});
+      renderSharedRecord(post);
+      cacheSharedRecord(post);
+    } catch (error) {
+      sharedRecordStatus.textContent = restored
+        ? "사진은 앱에서 확인해 주세요. 기록 정보는 공유 링크에서 복원했습니다."
+        : error && error.status === 429
+          ? "서버의 오늘 조회 한도가 소진되었습니다. 앱에서는 저장된 기록을 계속 확인할 수 있어요."
+          : "기록을 불러오지 못했습니다. 앱에서 다시 확인해 주세요.";
       if (sharedRecordAppButton) sharedRecordAppButton.hidden = false;
     }
   };
 
+  applyUnsupportedPlatformMessage();
   setupSharedRecordPreview();
 
   const setupScrollReveal = () => {
@@ -294,12 +398,17 @@
   const refreshInviteCompletion = async () => {
     const applicationTime = readStoredApplicationTime();
     if (!inviteCompleteCard || !inviteCompleteTitle || !inviteCompleteDetail || !playStoreCard) return;
+    inviteCompleteCard.hidden = false;
+    inviteCompleteCard.classList.add("is-checking");
+    if (inviteCompleteMark) inviteCompleteMark.textContent = "…";
+    inviteCompleteTitle.textContent = "초대 처리 현황";
+    inviteCompleteDetail.textContent = "확인 중…";
 
     try {
       const result = await requestInviteStatus();
-      if (!result || !result.ok || !result.completeThrough) return;
+      if (!result || !result.ok || !result.completeThrough) throw new Error("invalid invite status");
       const completeThrough = Date.parse(result.completeThrough);
-      if (!Number.isFinite(completeThrough)) return;
+      if (!Number.isFinite(completeThrough)) throw new Error("invalid completeThrough");
 
       const formatted = new Intl.DateTimeFormat("ko-KR", {
         year: "numeric",
@@ -320,10 +429,14 @@
         inviteCompleteTitle.textContent = "테스트 초대가 완료됐어요 🎉";
         inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대 처리가 완료되었습니다.`;
       }
-      inviteCompleteCard.hidden = false;
+      inviteCompleteCard.classList.remove("is-checking");
+      if (inviteCompleteMark) inviteCompleteMark.textContent = "✓";
       playStoreCard.hidden = false;
     } catch (_) {
-      // 완료 상태 확인 실패는 신청/공유 기능을 방해하지 않도록 조용히 무시합니다.
+      inviteCompleteCard.classList.remove("is-checking");
+      if (inviteCompleteMark) inviteCompleteMark.textContent = "!";
+      inviteCompleteTitle.textContent = "초대 처리 현황";
+      inviteCompleteDetail.textContent = "현재 상태를 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.";
     }
   };
 

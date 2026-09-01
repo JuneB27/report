@@ -114,11 +114,11 @@ h1 span, footer span { color: var(--yellow); }
 }
 
 .shared-record-preview {
-  padding: max(34px, env(safe-area-inset-top)) 0 34px;
+  padding: max(26px, env(safe-area-inset-top)) 0 24px;
 }
 
 .shared-record-heading {
-  margin-bottom: 18px;
+  margin-bottom: 13px;
 }
 
 .shared-record-heading h2 { margin-bottom: 6px; }
@@ -176,7 +176,7 @@ h1 span, footer span { color: var(--yellow); }
   flex-wrap: wrap;
   gap: 9px;
   align-items: center;
-  padding: 14px 18px 18px;
+  padding: 12px 18px 16px;
 }
 
 .shared-record-heart {
@@ -204,15 +204,27 @@ h1 span, footer span { color: var(--yellow); }
 .shared-record-actions .button { margin-left: auto; }
 
 .shared-record-invite {
+  display: grid;
+  gap: 14px;
   margin: 0 18px 18px;
-  padding: 18px;
+  padding: 16px;
   border-radius: 18px;
   background: linear-gradient(135deg, rgba(255, 183, 25, .16), rgba(255, 183, 25, .04));
 }
 
-.shared-record-invite p { margin: 4px 0 14px; color: var(--muted); }
+.shared-record-invite strong { line-height: 1.45; }
 .shared-record-invite .button { width: 100%; }
+.button.is-platform-disabled {
+  opacity: .82;
+  cursor: default;
+}
 .record-mode .hero { display: none; }
+.record-mode .story-sequence,
+.record-mode .feature-card,
+.record-mode .bottom-share,
+.record-mode .invite-complete-card,
+.record-mode .play-store-card { display: none !important; }
+.record-mode .apply-card { margin-top: 0; }
 
 @keyframes shared-heart-pop {
   0%, 100% { transform: scale(1); }
@@ -362,7 +374,7 @@ h1 span, footer span { color: var(--yellow); }
 .bottom-share {
   display: flex;
   justify-content: center;
-  padding: 18px 0 20px;
+  padding: 12px 0 8px;
 }
 
 .bottom-share .button {
@@ -379,7 +391,7 @@ h1 span, footer span { color: var(--yellow); }
   grid-template-columns: auto 1fr;
   gap: 18px;
   align-items: center;
-  margin: 10px 0 14px;
+  margin: 4px 0 14px;
   padding: clamp(24px, 6vw, 38px);
   border: 1px solid rgba(255, 183, 25, .3);
   border-radius: 26px;
@@ -475,6 +487,15 @@ h2 { margin-bottom: 12px; font-size: clamp(1.65rem, 5vw, 2.3rem); line-height: 1
   grid-template-columns: minmax(0, 1.2fr) minmax(140px, .8fr) auto;
   gap: 8px;
   align-items: end;
+}
+
+.invite-complete-card.is-checking .complete-mark {
+  animation: completion-checking 1s ease-in-out infinite alternate;
+}
+
+@keyframes completion-checking {
+  from { opacity: .55; transform: scale(.92); }
+  to { opacity: 1; transform: scale(1); }
 }
 .form-field { display: grid; min-width: 0; gap: 8px; }
 .form-field label { font-weight: 700; }
