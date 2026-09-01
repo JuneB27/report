@@ -483,13 +483,12 @@
   });
 
   const refreshInviteCompletion = async () => {
-    const applicationTime = readStoredApplicationTime();
     if (!inviteCompleteCard || !inviteCompleteTitle || !inviteCompleteDetail || !playStoreCard) return;
     inviteCompleteCard.hidden = false;
     inviteCompleteCard.classList.add("is-checking");
     if (inviteCompleteMark) inviteCompleteMark.textContent = "…";
-    inviteCompleteTitle.textContent = "초대 처리 현황";
-    inviteCompleteDetail.textContent = "확인 중…";
+    inviteCompleteTitle.textContent = "초대가 계속되고 있어요 🎉";
+    inviteCompleteDetail.textContent = "어디까지 초대됐나 확인 중...";
 
     try {
       const result = await requestInviteStatus();
@@ -505,24 +504,15 @@
         minute: "2-digit"
       }).format(new Date(completeThrough));
 
-      const submittedAt = Date.parse(applicationTime || "");
-      if (Number.isFinite(submittedAt) && submittedAt <= completeThrough) {
-        inviteCompleteTitle.textContent = "등록하신 계정의 초대가 완료됐어요.";
-        inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대 처리가 완료되었습니다. Google Play에서 REP:ORT를 설치해 주세요.`;
-      } else if (Number.isFinite(submittedAt)) {
-        inviteCompleteTitle.textContent = "테스트 초대를 순차 처리하고 있어요.";
-        inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대가 완료되었습니다. 이후 신청은 순서대로 처리됩니다.`;
-      } else {
-        inviteCompleteTitle.textContent = "테스트 초대가 완료됐어요 🎉";
-        inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대 처리가 완료되었습니다.`;
-      }
+      inviteCompleteTitle.textContent = "초대가 계속되고 있어요 🎉";
+      inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대가 완료됐어요!`;
       inviteCompleteCard.classList.remove("is-checking");
       if (inviteCompleteMark) inviteCompleteMark.textContent = "✓";
       playStoreCard.hidden = false;
     } catch (_) {
       inviteCompleteCard.classList.remove("is-checking");
       if (inviteCompleteMark) inviteCompleteMark.textContent = "!";
-      inviteCompleteTitle.textContent = "초대 처리 현황";
+      inviteCompleteTitle.textContent = "초대가 계속되고 있어요 🎉";
       inviteCompleteDetail.textContent = "현재 상태를 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.";
     }
   };
