@@ -1,5 +1,6 @@
 const SHEET_NAME = "TesterRequests";
-const HEADERS = ["received_at", "version", "algorithm", "ciphertext", "source", "complete"];
+// F열 complete를 유지하고, 사람이 직접 확인할 초대코드는 G열에 추가합니다.
+const HEADERS = ["received_at", "version", "algorithm", "ciphertext", "source", "complete", "invite_code"];
 const COMPLETE_VALUE = "complete";
 
 function setup() {
@@ -35,8 +36,9 @@ function doPost(e) {
       version: Number(payload.version),
       algorithm: payload.algorithm,
       ciphertext: payload.ciphertext,
-      source: payload.source || "unknown",
-      complete: ""
+      source: normalizeSource_(payload.source),
+      complete: "",
+      invite_code: protectSheetText_(payload.inviteCode)
     };
 
     sheet.appendRow(headers.map(function (header) {
@@ -123,6 +125,21 @@ function validatePayload_(payload) {
   }
   if (!/^[A-Za-z0-9+/]+={0,2}$/.test(payload.ciphertext)) throw new Error("암호문 인코딩이 올바르지 않습니다.");
   if (payload.source && String(payload.source).length > 80) throw new Error("source 값이 너무 깁니다.");
+  if (payload.inviteCode !== undefined && payload.inviteCode !== null) {
+    const inviteCode = String(payload.inviteCode).trim();
+    if (!inviteCode || inviteCode.length > 40 || /[\r\n\t]/.test(inviteCode)) {
+      throw new Error("초대코드 형식이 올바르지 않습니다.");
+    }
+  }
+}
+
+function normalizeSource_(value) {
+  return String(value || "unknown").replace(/\s+\|\s+invite:[\s\S]*$/, "").slice(0, 80);
+}
+
+function protectSheetText_(value) {
+  const text = String(value || "").trim();
+  return /^[=+\-@]/.test(text) ? "'" + text : text;
 }
 
 function response_(body, e) {

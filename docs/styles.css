@@ -470,9 +470,17 @@ h2 { margin-bottom: 12px; font-size: clamp(1.65rem, 5vw, 2.3rem); line-height: 1
 
 .apply-card { display: grid; grid-template-columns: .8fr 1.2fr; gap: 36px; align-items: start; }
 .apply-card > div > p:last-child { color: var(--muted); }
-label[for="email"] { display: block; margin-bottom: 8px; font-weight: 700; }
-.field-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-input[type="email"] {
+.field-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(140px, .8fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+.form-field { display: grid; min-width: 0; gap: 8px; }
+.form-field label { font-weight: 700; }
+input[type="email"],
+input[type="text"] {
+  width: 100%;
   min-width: 0;
   height: 48px;
   padding: 0 15px;
@@ -482,7 +490,8 @@ input[type="email"] {
   background: #0f0f13;
   color: var(--text);
 }
-input[type="email"]:focus { border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255, 183, 25, .12); }
+input[type="email"]:focus,
+input[type="text"]:focus { border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(255, 183, 25, .12); }
 .privacy-note { margin: 12px 0 0; color: var(--muted); font-size: .79rem; }
 .privacy-note a, .back-link { color: var(--yellow); }
 .status { min-height: 1.5em; margin: 14px 0 0; font-size: .9rem; font-weight: 700; }

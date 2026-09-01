@@ -13,12 +13,12 @@
   <link rel="canonical" href="https://juneb27.github.io/report/?mode=invite">
   <title>REP:ORT</title>
   <link rel="icon" href="assets/app-icon.png">
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.2/kakao.min.js"
           integrity="sha384-zt/G7/KfaRQ9dT/QIkS0ujMtzouJqzuSJcXVQu50x0rl/+mD1dc70AeOejVbMD9E"
           crossorigin="anonymous" defer></script>
   <script src="config.js?v=3" defer></script>
-  <script src="app.js?v=14" defer></script>
+  <script src="app.js?v=15" defer></script>
 </head>
 <body>
   <main>
@@ -113,13 +113,21 @@
         <p>Google Play에서 앱 설치를 위해 사용할 Google 계정 이메일을 입력해 주세요.</p>
       </div>
       <form id="tester-form" novalidate>
-        <label for="email">Google 계정 이메일</label>
         <div class="field-row">
-          <input id="email" name="email" type="email" autocomplete="email" inputmode="email"
-                 placeholder="name@gmail.com" maxlength="254" required>
+          <div class="form-field">
+            <label for="email">Google 계정 이메일</label>
+            <input id="email" name="email" type="email" autocomplete="email" inputmode="email"
+                   placeholder="name@gmail.com" maxlength="254" required>
+          </div>
+          <div class="form-field">
+            <label for="invite-code">초대코드</label>
+            <input id="invite-code" name="inviteCode" type="text" autocomplete="off"
+                   autocapitalize="characters" spellcheck="false" placeholder="초대코드 입력"
+                   maxlength="40" required>
+          </div>
           <button class="button button-primary" id="submit-button" type="submit">신청</button>
         </div>
-        <p class="privacy-note">이메일은 이 기기에서 암호화되어 전송되어 제 3자가 확인할 수 없습니다. 이메일은 초대 완료 즉시 삭제됩니다. <a href="privacy.html">수집 안내</a></p>
+        <p class="privacy-note">이메일은 이 기기에서 암호화되어 전송되어 제 3자가 확인할 수 없습니다. 초대코드는 승인 확인을 위해 시트에 표시되며, 이메일은 초대 완료 즉시 삭제됩니다. <a href="privacy.html">수집 안내</a></p>
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </form>
     </section>

@@ -4,6 +4,7 @@
   const config = window.REPORT_CONFIG || {};
   const form = document.querySelector("#tester-form");
   const emailInput = document.querySelector("#email");
+  const inviteCodeInput = document.querySelector("#invite-code");
   const submitButton = document.querySelector("#submit-button");
   const shareButton = document.querySelector("#kakaotalk-sharing-btn");
   const openSharedRecord = document.querySelector("#open-shared-record");
@@ -367,6 +368,12 @@
       setStatus("올바른 Google 계정 이메일을 입력해 주세요.", "error");
       return;
     }
+    const inviteCode = String(inviteCodeInput && inviteCodeInput.value || "").trim();
+    if (!inviteCode || inviteCode.length > 40 || /[\r\n\t]/.test(inviteCode)) {
+      if (inviteCodeInput) inviteCodeInput.focus();
+      setStatus("초대코드를 입력해 주세요.", "error");
+      return;
+    }
     if (!config.appsScriptEndpoint) {
       setStatus("신청 접수 주소가 아직 설정되지 않았습니다.", "error");
       return;
@@ -385,7 +392,9 @@
           version: 1,
           algorithm: "RSA-OAEP-256",
           ciphertext,
-          source: "github-pages"
+          inviteCode,
+          // 새 Apps Script 배포 전에도 코드가 누락되지 않도록 source 열에 호환 사본을 남깁니다.
+          source: `github-pages | invite:${inviteCode}`
         })
       });
       storeApplicationTime(submittedAt);

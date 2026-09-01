@@ -8,7 +8,14 @@
    - 액세스 권한: 모든 사용자
 5. 배포 URL을 `docs/config.js`의 `appsScriptEndpoint`에 넣습니다.
 
-시트에는 이메일 원문이 아니라 RSA-OAEP 암호문만 기록됩니다. 복호화할 때는 시트를 CSV로 내려받고 `tools/decrypt-tester-emails.ps1`을 사용합니다.
+시트에는 이메일 원문이 아니라 RSA-OAEP 암호문만 기록됩니다. 복호화할 때는 시트를 CSV로 내려받고 `tools/decrypt-tester-emails.ps1`을 사용합니다. 사용자가 입력한 초대코드는 승인 판단을 위해 암호화하지 않고 `invite_code` 열에 저장됩니다.
+
+## 초대코드 열
+
+- 기존 F열 `complete`는 그대로 유지됩니다.
+- Apps Script를 새 버전으로 배포하면 G열에 `invite_code`가 자동으로 추가됩니다.
+- 초대코드를 확인한 뒤 승인할 행의 F열에 `complete`를 입력합니다.
+- 새 Apps Script가 배포되기 전 접수분도 누락되지 않도록 E열 `source`에 `invite:` 형식의 호환 사본이 저장됩니다.
 
 ## 초대 완료 표시
 
