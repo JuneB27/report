@@ -35,6 +35,9 @@
   const pageMode = pageParams.get("mode");
   const sharedPostId = pageParams.get("post");
   const isSharedRecord = pageMode === "record" && /^\d+$/.test(sharedPostId || "");
+  const requestedDocumentId = /^\d+$/.test(pageParams.get("doc") || "")
+    ? pageParams.get("doc")
+    : sharedPostId;
   const userAgent = navigator.userAgent || "";
   const isiOS = /iPad|iPhone|iPod/i.test(userAgent)
     || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -73,6 +76,97 @@
   const decodeFirestoreFields = (fields) => Object.fromEntries(
     Object.entries(fields || {}).map(([key, value]) => [key, decodeFirestoreValue(value)])
   );
+
+  const normalizeFirestorePost = (post) => {
+    if (!post || typeof post !== "object") return null;
+    const id = Number(post.id);
+    if (!Number.isSafeInteger(id) || String(id) !== String(sharedPostId)) return null;
+    const types = Array.isArray(post.types)
+      ? post.types.filter((value) => typeof value === "string" && value)
+      : typeof post.type === "string" && post.type ? [post.type] : [];
+    return {
+      ...post,
+      id,
+      nickname: String(post.nickname || "REP:ORT"),
+      type: String(post.type || types[0] || ""),
+      types,
+      date: String(post.date || ""),
+      time: String(post.time || ""),
+      photo: String(post.photo || ""),
+      note: String(post.note || ""),
+      likes: Array.isArray(post.likes) ? post.likes : [],
+      comments: Array.isArray(post.comments) ? post.comments : []
+    };
+  };
+
+  const firestoreError = (status, message) => {
+    const error = new Error(message || `Firestore ${status}`);
+    error.status = status;
+    return error;
+  };
+
+  const fetchFirestoreJson = async (endpoint, options = {}) => {
+    const { headers = {}, ...requestOptions } = options;
+    const response = await fetch(endpoint.href, {
+      cache: "no-store",
+      ...requestOptions,
+      headers: { Accept: "application/json", ...headers }
+    });
+    if (!response.ok) throw firestoreError(response.status);
+    return response.json();
+  };
+
+  const fetchSharedRecordFromFirestore = async () => {
+    if (!config.firebaseProjectId || !config.firebaseWebApiKey) {
+      throw firestoreError(0, "Firebase web configuration is missing");
+    }
+    const project = encodeURIComponent(config.firebaseProjectId);
+    const database = encodeURIComponent(config.firebaseDatabaseId || "(default)");
+    const documentEndpoint = new URL(
+      `https://firestore.googleapis.com/v1/projects/${project}/databases/${database}/documents/submissions/${encodeURIComponent(requestedDocumentId)}`
+    );
+    documentEndpoint.searchParams.set("key", config.firebaseWebApiKey);
+
+    try {
+      const documentData = await fetchFirestoreJson(documentEndpoint);
+      const direct = normalizeFirestorePost(decodeFirestoreFields(documentData.fields || {}));
+      if (direct) return direct;
+    } catch (error) {
+      // Quota, permission and network failures must not cause a second paid query. Only a
+      // missing document can mean legacy data used a different document ID.
+      if (!error || error.status !== 404) throw error;
+    }
+
+    const queryEndpoint = new URL(
+      `https://firestore.googleapis.com/v1/projects/${project}/databases/${database}/documents:runQuery`
+    );
+    queryEndpoint.searchParams.set("key", config.firebaseWebApiKey);
+    const queryResult = await fetchFirestoreJson(queryEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: "submissions" }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: "id" },
+              op: "EQUAL",
+              value: { integerValue: String(sharedPostId) }
+            }
+          },
+          limit: 1
+        }
+      })
+    });
+    const matchedDocument = Array.isArray(queryResult)
+      ? queryResult.find((entry) => entry && entry.document && entry.document.fields)
+      : null;
+    const matched = matchedDocument
+      ? normalizeFirestorePost(decodeFirestoreFields(matchedDocument.document.fields))
+      : null;
+    if (!matched) throw firestoreError(404, "Shared record not found");
+    return matched;
+  };
 
   const typeLabel = (types) => {
     const labels = { strength: "💪 근력", cardio: "🏃 유산소", other: "✨ 기타" };
@@ -217,35 +311,17 @@
     const embedded = embeddedSharedRecord();
     const cached = readCachedSharedRecord();
     const restored = embedded || cached;
-    if (restored) renderSharedRecord(restored);
-    if (embedded && embedded.photo) {
-      cacheSharedRecord(embedded);
-      return;
-    }
-
-    if (!config.firebaseProjectId || !config.firebaseWebApiKey) {
-      sharedRecordStatus.textContent = "웹 기록 조회 설정을 확인해 주세요.";
-      return;
+    if (restored) {
+      renderSharedRecord(restored);
+      sharedRecordStatus.textContent = "Firebase에서 최신 기록을 확인하고 있어요.";
     }
     try {
-      const endpoint = new URL(`https://firestore.googleapis.com/v1/projects/${encodeURIComponent(config.firebaseProjectId)}/databases/(default)/documents/submissions/${encodeURIComponent(sharedPostId)}`);
-      endpoint.searchParams.set("key", config.firebaseWebApiKey);
-      const response = await fetch(endpoint.href, {
-        cache: "no-store",
-        headers: { Accept: "application/json" }
-      });
-      if (!response.ok) {
-        const error = new Error(`Firestore ${response.status}`);
-        error.status = response.status;
-        throw error;
-      }
-      const documentData = await response.json();
-      const post = decodeFirestoreFields(documentData.fields || {});
+      const post = await fetchSharedRecordFromFirestore();
       renderSharedRecord(post);
       cacheSharedRecord(post);
     } catch (error) {
       sharedRecordStatus.textContent = restored
-        ? "사진은 앱에서 확인해 주세요. 기록 정보는 공유 링크에서 복원했습니다."
+        ? "실시간 조회가 지연되어 공유 시점의 기록을 먼저 보여드려요."
         : error && error.status === 429
           ? "서버의 오늘 조회 한도가 소진되었습니다. 앱에서는 저장된 기록을 계속 확인할 수 있어요."
           : "기록을 불러오지 못했습니다. 앱에서 다시 확인해 주세요.";
