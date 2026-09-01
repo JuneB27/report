@@ -431,6 +431,8 @@
           title: "REP:ORT 앱 등록",
           description: "운동을 사진으로 기록하고 함께 성장하는 REP:ORT",
           imageUrl: config.imageUrl,
+          imageWidth: 512,
+          imageHeight: 256,
           link: { ...webOnlyLink }
         },
         buttons: [
