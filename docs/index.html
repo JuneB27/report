@@ -13,12 +13,12 @@
   <link rel="canonical" href="https://juneb27.github.io/report/?mode=invite">
   <title>REP:ORT</title>
   <link rel="icon" href="assets/app-icon.png">
-  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=10">
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.2/kakao.min.js"
           integrity="sha384-zt/G7/KfaRQ9dT/QIkS0ujMtzouJqzuSJcXVQu50x0rl/+mD1dc70AeOejVbMD9E"
           crossorigin="anonymous" defer></script>
   <script src="config.js?v=3" defer></script>
-  <script src="app.js?v=18" defer></script>
+  <script src="app.js?v=19" defer></script>
 </head>
 <body>
   <main>
@@ -26,7 +26,7 @@
       <div class="shared-record-heading">
         <p class="eyebrow">SHARED WORKOUT</p>
         <h2>함께 응원할 기록이에요.</h2>
-        <p id="shared-record-status">인증 기록을 불러오고 있어요.</p>
+        <p id="shared-record-status" hidden>인증 기록을 불러오고 있어요.</p>
       </div>
       <article class="shared-record-card" id="shared-record-card" hidden>
         <header class="shared-record-author">
@@ -39,11 +39,19 @@
         <img class="shared-record-photo" id="shared-record-photo" alt="공유된 운동 인증 사진">
         <p class="shared-record-note" id="shared-record-note"></p>
         <div class="shared-record-actions">
-          <button class="shared-record-heart" id="shared-record-heart" type="button" aria-expanded="false">
-            <span aria-hidden="true">♥</span> <span id="shared-record-like-count">0</span>
-          </button>
-          <span class="shared-record-comments" id="shared-record-comment-count">댓글 0</span>
-          <button class="button button-record" id="shared-record-app-button" type="button">응원하기</button>
+          <div class="shared-record-reactions">
+            <button class="shared-record-heart" id="shared-record-heart" type="button" aria-expanded="false">
+              <span aria-hidden="true">♥</span> <span id="shared-record-like-count">0</span>
+            </button>
+            <span class="shared-record-comments" id="shared-record-comment-count">댓글 0</span>
+          </div>
+          <div class="shared-record-view-buttons" id="shared-record-view-buttons">
+            <a class="button button-record" id="shared-record-web-button" href="https://rep-ort.vercel.app/">웹으로 보기</a>
+            <button class="button button-record" id="shared-record-app-button" type="button">
+              <img class="shared-record-app-icon" src="assets/android-robot.png" width="22" height="22" alt="">
+              <span>앱으로 보기</span>
+            </button>
+          </div>
         </div>
         <div class="shared-record-invite" id="shared-record-invite" hidden>
           <strong>REP:ORT 앱에서 공유된 기록입니다.</strong>

@@ -109,7 +109,9 @@ h1 span, footer span { color: var(--yellow); }
 
 .shared-record-preview[hidden],
 .shared-record-card[hidden],
-.shared-record-invite[hidden] {
+.shared-record-invite[hidden],
+#shared-record-status[hidden],
+#shared-record-app-button[hidden] {
   display: none;
 }
 
@@ -172,11 +174,15 @@ h1 span, footer span { color: var(--yellow); }
 }
 
 .shared-record-actions {
+  display: grid;
+  gap: 12px;
+  padding: 12px 18px 16px;
+}
+
+.shared-record-reactions {
   display: flex;
-  flex-wrap: wrap;
   gap: 9px;
   align-items: center;
-  padding: 12px 18px 16px;
 }
 
 .shared-record-heart {
@@ -201,7 +207,22 @@ h1 span, footer span { color: var(--yellow); }
   font-weight: 700;
 }
 
-.shared-record-actions .button { margin-left: auto; }
+.shared-record-view-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  width: 100%;
+}
+
+.shared-record-view-buttons.is-web-only { grid-template-columns: 1fr; }
+.shared-record-view-buttons .button { width: 100%; min-width: 0; }
+
+.shared-record-app-icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
 
 .shared-record-invite {
   display: grid;
@@ -544,7 +565,7 @@ footer a { color: var(--yellow); }
   .play-store-card { grid-template-columns: auto 1fr; }
   .play-store-arrow { display: none; }
   .play-store-copy > span { font-size: .79rem; }
-  .shared-record-actions .button { width: 100%; margin-left: 0; }
+  .shared-record-view-buttons .button { padding-inline: 10px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -19,7 +19,9 @@
   const sharedRecordLikeCount = document.querySelector("#shared-record-like-count");
   const sharedRecordCommentCount = document.querySelector("#shared-record-comment-count");
   const sharedRecordHeart = document.querySelector("#shared-record-heart");
+  const sharedRecordWebButton = document.querySelector("#shared-record-web-button");
   const sharedRecordAppButton = document.querySelector("#shared-record-app-button");
+  const sharedRecordViewButtons = document.querySelector("#shared-record-view-buttons");
   const sharedRecordInvite = document.querySelector("#shared-record-invite");
   const sharedRecordInviteButton = document.querySelector("#shared-record-invite-button");
   const status = document.querySelector("#status");
@@ -47,10 +49,17 @@
   const sharedRecordDeepLink = isSharedRecord
     ? `report://record?post=${encodeURIComponent(sharedPostId)}`
     : "";
+  const sharedRecordWebUrl = (() => {
+    if (!isSharedRecord) return String(config.webAppUrl || "https://rep-ort.vercel.app/");
+    const target = new URL(config.webAppUrl || "https://rep-ort.vercel.app/", location.href);
+    target.searchParams.set("post", sharedPostId);
+    return target.href;
+  })();
   if (openSharedRecord && isSharedRecord) {
     openSharedRecord.href = sharedRecordDeepLink;
     openSharedRecord.hidden = false;
   }
+  if (sharedRecordWebButton) sharedRecordWebButton.href = sharedRecordWebUrl;
 
   const invitationUrl = () => {
     const target = new URL(config.landingUrl || location.origin + location.pathname, location.href);
@@ -224,6 +233,8 @@
 
   const applyUnsupportedPlatformMessage = () => {
     if (!androidUnsupported) return;
+    if (sharedRecordAppButton) sharedRecordAppButton.hidden = true;
+    if (sharedRecordViewButtons) sharedRecordViewButtons.classList.add("is-web-only");
     if (sharedRecordInviteButton) {
       sharedRecordInviteButton.textContent = "현재는 안드로이드 앱만 지원됩니다 🥺";
       sharedRecordInviteButton.href = "#";
@@ -325,7 +336,7 @@
         : error && error.status === 429
           ? "서버의 오늘 조회 한도가 소진되었습니다. 앱에서는 저장된 기록을 계속 확인할 수 있어요."
           : "기록을 불러오지 못했습니다. 앱에서 다시 확인해 주세요.";
-      if (sharedRecordAppButton) sharedRecordAppButton.hidden = false;
+      if (sharedRecordAppButton && !androidUnsupported) sharedRecordAppButton.hidden = false;
     }
   };
 
