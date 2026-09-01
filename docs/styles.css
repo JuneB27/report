@@ -242,9 +242,7 @@ h1 span, footer span { color: var(--yellow); }
 .record-mode .hero { display: none; }
 .record-mode .story-sequence,
 .record-mode .feature-card,
-.record-mode .bottom-share,
-.record-mode .invite-complete-card,
-.record-mode .play-store-card { display: none !important; }
+.record-mode .bottom-share { display: none !important; }
 .record-mode .apply-card { margin-top: 0; }
 
 @keyframes shared-heart-pop {
