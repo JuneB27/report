@@ -401,7 +401,7 @@ h1 span, footer span { color: var(--yellow); }
 }
 
 #invite-complete-card[hidden],
-#play-store-card[hidden] {
+.play-store-card[hidden] {
   display: none;
 }
 
@@ -506,6 +506,12 @@ h2 { margin-bottom: 12px; font-size: clamp(1.65rem, 5vw, 2.3rem); line-height: 1
   grid-template-columns: minmax(0, 1.2fr) minmax(140px, .8fr) auto;
   gap: 8px;
   align-items: end;
+}
+
+.hero .play-store-card {
+  width: min(100%, 560px);
+  margin-bottom: 24px;
+  text-align: left;
 }
 
 .invite-complete-card.is-checking .complete-mark {

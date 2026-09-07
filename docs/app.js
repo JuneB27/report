@@ -29,7 +29,6 @@
   const inviteCompleteMark = document.querySelector("#invite-complete-mark");
   const inviteCompleteTitle = document.querySelector("#invite-complete-title");
   const inviteCompleteDetail = document.querySelector("#invite-complete-detail");
-  const playStoreCard = document.querySelector("#play-store-card");
   const APPLICATION_RECEIVED_AT_KEY = "report.testerApplication.receivedAt.v1";
   const SHARED_RECORD_CACHE_PREFIX = "report.sharedRecord.v1.";
 
@@ -483,7 +482,7 @@
   });
 
   const refreshInviteCompletion = async () => {
-    if (!inviteCompleteCard || !inviteCompleteTitle || !inviteCompleteDetail || !playStoreCard) return;
+    if (!inviteCompleteCard || !inviteCompleteTitle || !inviteCompleteDetail) return;
     inviteCompleteCard.hidden = false;
     inviteCompleteCard.classList.add("is-checking");
     if (inviteCompleteMark) inviteCompleteMark.textContent = "…";
@@ -508,7 +507,6 @@
       inviteCompleteDetail.textContent = `${formatted} 접수분까지 초대가 완료됐어요!`;
       inviteCompleteCard.classList.remove("is-checking");
       if (inviteCompleteMark) inviteCompleteMark.textContent = "✓";
-      playStoreCard.hidden = false;
     } catch (_) {
       inviteCompleteCard.classList.remove("is-checking");
       if (inviteCompleteMark) inviteCompleteMark.textContent = "!";

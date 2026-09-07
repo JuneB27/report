@@ -13,12 +13,12 @@
   <link rel="canonical" href="https://juneb27.github.io/report/?mode=invite">
   <title>REP:ORT</title>
   <link rel="icon" href="assets/app-icon.png">
-  <link rel="stylesheet" href="styles.css?v=11">
+  <link rel="stylesheet" href="styles.css?v=12">
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.2/kakao.min.js"
           integrity="sha384-zt/G7/KfaRQ9dT/QIkS0ujMtzouJqzuSJcXVQu50x0rl/+mD1dc70AeOejVbMD9E"
           crossorigin="anonymous" defer></script>
   <script src="config.js?v=3" defer></script>
-  <script src="app.js?v=20" defer></script>
+  <script src="app.js?v=21" defer></script>
 </head>
 <body>
   <main>
@@ -66,6 +66,17 @@
       <h1 id="hero-title" aria-label="REP:ORT">REP<span>:</span>ORT</h1>
       <p class="lead">완벽한 운동보다<br>오늘 한 운동이 낫습니다.</p>
       <p class="sublead">사진으로 운동을 남기고, 서로의 꾸준함을 응원하는 피트니스 커뮤니티를 앱으로 만나보세요.</p>
+      <a class="play-store-card play-store-card-hero" data-play-store-card
+         href="https://play.google.com/store/apps/details?id=com.js.reportfitness"
+         target="_blank" rel="noopener">
+        <img src="assets/app-icon.png" width="72" height="72" alt="">
+        <span class="play-store-copy">
+          <small>GOOGLE PLAY</small>
+          <strong>REP:ORT 앱 설치하기</strong>
+          <span>앱에서 빠르게 인증 완료해보세요!</span>
+        </span>
+        <span class="play-store-arrow" aria-hidden="true">→</span>
+      </a>
       <div class="hero-actions">
         <a class="button button-record" id="open-shared-record" href="#" hidden>앱에서 기록 열기</a>
       </div>
@@ -146,6 +157,18 @@
       </a>
     </div>
 
+    <a class="play-store-card" data-play-store-card
+       href="https://play.google.com/store/apps/details?id=com.js.reportfitness"
+       target="_blank" rel="noopener" data-reveal>
+      <img src="assets/app-icon.png" width="72" height="72" alt="">
+      <span class="play-store-copy">
+        <small>GOOGLE PLAY</small>
+        <strong>REP:ORT 앱 설치하기</strong>
+        <span>앱에서 빠르게 인증 완료해보세요!</span>
+      </span>
+      <span class="play-store-arrow" aria-hidden="true">→</span>
+    </a>
+
     <section class="invite-complete-card is-checking" id="invite-complete-card"
              aria-labelledby="invite-complete-title" aria-live="polite">
       <span class="complete-mark" id="invite-complete-mark" aria-hidden="true">…</span>
@@ -156,17 +179,6 @@
       </div>
     </section>
 
-    <a class="play-store-card" id="play-store-card"
-       href="https://play.google.com/store/apps/details?id=com.js.reportfitness"
-       target="_blank" rel="noopener" data-reveal hidden>
-      <img src="assets/app-icon.png" width="72" height="72" alt="">
-      <span class="play-store-copy">
-        <small>GOOGLE PLAY</small>
-        <strong>REP:ORT 앱 설치하기</strong>
-        <span>앱에서 빠르게 인증 완료해보세요!</span>
-      </span>
-      <span class="play-store-arrow" aria-hidden="true">→</span>
-    </a>
   </main>
 
   <footer>
