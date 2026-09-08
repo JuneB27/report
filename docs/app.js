@@ -95,7 +95,11 @@
   })();
   const sharedBadgeWebUrl = (() => {
     const target = new URL(config.webAppUrl || "https://rep-ort.vercel.app/", location.href);
-    if (isSharedBadge) target.searchParams.set("profile", requestedBadgeNickname);
+    target.search = "";
+    target.hash = "";
+    if (/^\d+$/.test(sharedPostId || "")) {
+      target.searchParams.set("post", sharedPostId);
+    }
     return target.href;
   })();
   if (openSharedRecord && isSharedRecord) {
@@ -494,13 +498,12 @@
     try {
       const badgeProfile = await fetchSharedBadgeProfileFromFirestore();
       renderSharedBadge(badgeProfile);
+      sharedBadgeStatus.hidden = false;
       sharedBadgeStatus.textContent = badgeProfile.photo
         ? "앱이 설치되어 있지 않아 웹에서 배지를 보여드려요."
         : "공유된 배지를 확인했어요.";
-    } catch (error) {
-      sharedBadgeStatus.textContent = error && error.status === 429
-        ? "서버 조회가 잠시 지연되어 배지를 먼저 보여드려요."
-        : "프로필 사진은 불러오지 못했지만 공유된 배지는 확인할 수 있어요.";
+    } catch {
+      sharedBadgeStatus.hidden = true;
     }
   };
 
