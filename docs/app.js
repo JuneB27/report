@@ -24,6 +24,27 @@
   const sharedRecordViewButtons = document.querySelector("#shared-record-view-buttons");
   const sharedRecordInvite = document.querySelector("#shared-record-invite");
   const sharedRecordInviteButton = document.querySelector("#shared-record-invite-button");
+  const sharedBadgePreview = document.querySelector("#shared-badge-preview");
+  const sharedBadgeCard = document.querySelector("#shared-badge-card");
+  const sharedBadgeStatus = document.querySelector("#shared-badge-status");
+  const sharedBadgeHeaderPhoto = document.querySelector("#shared-badge-header-photo");
+  const sharedBadgeHeaderInitial = document.querySelector("#shared-badge-header-initial");
+  const sharedBadgeNickname = document.querySelector("#shared-badge-nickname");
+  const sharedBadgeMeta = document.querySelector("#shared-badge-meta");
+  const sharedBadgeProfilePhoto = document.querySelector("#shared-badge-profile-photo");
+  const sharedBadgeProfileInitial = document.querySelector("#shared-badge-profile-initial");
+  const sharedBadgeProfileName = document.querySelector("#shared-badge-profile-name");
+  const sharedBadgeMedal = document.querySelector("#shared-badge-medal");
+  const sharedBadgeCode = document.querySelector("#shared-badge-code");
+  const sharedBadgeName = document.querySelector("#shared-badge-name");
+  const sharedBadgeMessage = document.querySelector("#shared-badge-message");
+  const sharedBadgeDescription = document.querySelector("#shared-badge-description");
+  const sharedBadgeThumbnail = document.querySelector("#shared-badge-thumbnail");
+  const sharedBadgeWebButton = document.querySelector("#shared-badge-web-button");
+  const sharedBadgeAppButton = document.querySelector("#shared-badge-app-button");
+  const sharedBadgeViewButtons = document.querySelector("#shared-badge-view-buttons");
+  const sharedBadgeInvite = document.querySelector("#shared-badge-invite");
+  const sharedBadgeInviteButton = document.querySelector("#shared-badge-invite-button");
   const status = document.querySelector("#status");
   const inviteCompleteCard = document.querySelector("#invite-complete-card");
   const inviteCompleteMark = document.querySelector("#invite-complete-mark");
@@ -31,11 +52,26 @@
   const inviteCompleteDetail = document.querySelector("#invite-complete-detail");
   const APPLICATION_RECEIVED_AT_KEY = "report.testerApplication.receivedAt.v1";
   const SHARED_RECORD_CACHE_PREFIX = "report.sharedRecord.v1.";
+  const BADGES = Object.freeze({
+    first: { code: "1", name: "첫 플레이트", description: "누적 인증 1회", color: "#ff3b5c" },
+    week3: { code: "W3", name: "주 3회 클리어", description: "한 주에 3회 이상", color: "#ff7a1a" },
+    ten: { code: "10", name: "10회 달성", description: "누적 인증 10회", color: "#ffc81f" },
+    streak4: { code: "4W", name: "한 달 루틴", description: "주 3회를 4주 연속", color: "#5fd84b" },
+    twentyfive: { code: "25", name: "25회 달성", description: "누적 인증 25회", color: "#c24bff" },
+    fifty: { code: "50", name: "50회 달성", description: "누적 인증 50회", color: "#00d2c2" },
+    streak12: { code: "12W", name: "세 달 루틴", description: "주 3회를 12주 연속", color: "#2e9cff" },
+    hundred: { code: "100", name: "100회 달성", description: "누적 인증 100회", color: "#6b5bff" },
+    weeks26: { code: "26W", name: "스물여섯 주", description: "주 3회 달성한 주 26주", color: "#ffffff", rainbow: true }
+  });
 
   const pageParams = new URLSearchParams(location.search);
   const pageMode = pageParams.get("mode");
   const sharedPostId = pageParams.get("post");
   const isSharedRecord = pageMode === "record" && /^\d+$/.test(sharedPostId || "");
+  const requestedBadgeNickname = String(pageParams.get("nickname") || "").trim().slice(0, 40);
+  const requestedBadgeId = String(pageParams.get("badge") || "").trim();
+  const requestedBadge = BADGES[requestedBadgeId] || null;
+  const isSharedBadge = pageMode === "badge" && Boolean(requestedBadgeNickname && requestedBadge);
   const requestedDocumentId = /^\d+$/.test(pageParams.get("doc") || "")
     ? pageParams.get("doc")
     : sharedPostId;
@@ -48,10 +84,18 @@
   const sharedRecordDeepLink = isSharedRecord
     ? `report://record?post=${encodeURIComponent(sharedPostId)}`
     : "";
+  const sharedBadgeDeepLink = isSharedBadge
+    ? `report://record?profile=${encodeURIComponent(requestedBadgeNickname)}${/^\d+$/.test(sharedPostId || "") ? `&post=${encodeURIComponent(sharedPostId)}` : ""}`
+    : "";
   const sharedRecordWebUrl = (() => {
     if (!isSharedRecord) return String(config.webAppUrl || "https://rep-ort.vercel.app/");
     const target = new URL(config.webAppUrl || "https://rep-ort.vercel.app/", location.href);
     target.searchParams.set("post", sharedPostId);
+    return target.href;
+  })();
+  const sharedBadgeWebUrl = (() => {
+    const target = new URL(config.webAppUrl || "https://rep-ort.vercel.app/", location.href);
+    if (isSharedBadge) target.searchParams.set("profile", requestedBadgeNickname);
     return target.href;
   })();
   if (openSharedRecord && isSharedRecord) {
@@ -59,6 +103,7 @@
     openSharedRecord.hidden = false;
   }
   if (sharedRecordWebButton) sharedRecordWebButton.href = sharedRecordWebUrl;
+  if (sharedBadgeWebButton) sharedBadgeWebButton.href = sharedBadgeWebUrl;
 
   const invitationUrl = () => {
     const target = new URL(config.landingUrl || location.origin + location.pathname, location.href);
@@ -176,6 +221,26 @@
     return matched;
   };
 
+  const fetchSharedBadgeProfileFromFirestore = async () => {
+    if (!isSharedBadge) throw firestoreError(400, "Shared badge is invalid");
+    if (!config.firebaseProjectId || !config.firebaseWebApiKey) {
+      throw firestoreError(0, "Firebase web configuration is missing");
+    }
+    const project = encodeURIComponent(config.firebaseProjectId);
+    const database = encodeURIComponent(config.firebaseDatabaseId || "(default)");
+    const endpoint = new URL(
+      `https://firestore.googleapis.com/v1/projects/${project}/databases/${database}/documents/users/${encodeURIComponent(requestedBadgeNickname)}`
+    );
+    endpoint.searchParams.set("key", config.firebaseWebApiKey);
+    const documentData = await fetchFirestoreJson(endpoint);
+    const profile = decodeFirestoreFields(documentData.fields || {});
+    return {
+      nickname: requestedBadgeNickname,
+      location: String(profile.location || "").trim(),
+      photo: String(profile.photo || "").trim()
+    };
+  };
+
   const typeLabel = (types) => {
     const labels = { strength: "💪 근력", cardio: "🏃 유산소", other: "✨ 기타" };
     return (Array.isArray(types) ? types : []).map((type) => labels[type] || type).filter(Boolean).join(" · ");
@@ -234,13 +299,15 @@
     if (!androidUnsupported) return;
     if (sharedRecordAppButton) sharedRecordAppButton.hidden = true;
     if (sharedRecordViewButtons) sharedRecordViewButtons.classList.add("is-web-only");
-    if (sharedRecordInviteButton) {
-      sharedRecordInviteButton.textContent = "현재는 안드로이드 앱만 지원됩니다 🥺";
-      sharedRecordInviteButton.href = "#";
-      sharedRecordInviteButton.setAttribute("aria-disabled", "true");
-      sharedRecordInviteButton.classList.add("is-platform-disabled");
-      sharedRecordInviteButton.addEventListener("click", (event) => event.preventDefault());
-    }
+    if (sharedBadgeAppButton) sharedBadgeAppButton.hidden = true;
+    if (sharedBadgeViewButtons) sharedBadgeViewButtons.classList.add("is-web-only");
+    [sharedRecordInviteButton, sharedBadgeInviteButton].filter(Boolean).forEach((button) => {
+      button.textContent = "현재는 안드로이드 앱만 지원됩니다 🥺";
+      button.href = "#";
+      button.setAttribute("aria-disabled", "true");
+      button.classList.add("is-platform-disabled");
+      button.addEventListener("click", (event) => event.preventDefault());
+    });
     if (submitButton) {
       submitButton.textContent = "현재는 안드로이드 앱만 지원됩니다 🥺";
       submitButton.disabled = true;
@@ -269,6 +336,29 @@
     window.location.href = sharedRecordDeepLink;
     window.setTimeout(() => {
       if (!appOpened && document.visibilityState === "visible") revealSharedRecordInvite();
+    }, 1100);
+  };
+
+  const revealSharedBadgeInvite = () => {
+    if (!sharedBadgeInvite) return;
+    sharedBadgeInvite.hidden = false;
+    sharedBadgeInvite.classList.remove("is-inviting");
+    requestAnimationFrame(() => sharedBadgeInvite.classList.add("is-inviting"));
+    window.setTimeout(() => sharedBadgeInvite.scrollIntoView({ behavior: "smooth", block: "nearest" }), 180);
+  };
+
+  const openSharedBadgeInApp = () => {
+    if (!sharedBadgeDeepLink) return;
+    if (androidUnsupported) {
+      revealSharedBadgeInvite();
+      return;
+    }
+    let appOpened = false;
+    const markOpened = () => { if (document.visibilityState === "hidden") appOpened = true; };
+    document.addEventListener("visibilitychange", markOpened, { once: true });
+    window.location.href = sharedBadgeDeepLink;
+    window.setTimeout(() => {
+      if (!appOpened && document.visibilityState === "visible") revealSharedBadgeInvite();
     }, 1100);
   };
 
@@ -339,8 +429,84 @@
     }
   };
 
+  const setSharedBadgePhoto = (image, fallback, photo) => {
+    if (!image || !fallback) return;
+    image.onerror = null;
+    image.removeAttribute("src");
+    image.hidden = true;
+    fallback.hidden = false;
+    if (!/^(data:image\/(?:jpeg|jpg|png|webp);base64,|https:\/\/)/i.test(photo || "")) return;
+    image.onload = () => {
+      image.hidden = false;
+      fallback.hidden = true;
+    };
+    image.onerror = () => {
+      image.hidden = true;
+      fallback.hidden = false;
+      image.removeAttribute("src");
+    };
+    image.src = photo;
+  };
+
+  const renderSharedBadge = (profile = null) => {
+    if (!isSharedBadge || !sharedBadgeCard || !requestedBadge) return;
+    const nickname = requestedBadgeNickname || "REP:ORT";
+    const locationName = profile && profile.location ? String(profile.location).trim() : "";
+    const displayName = locationName ? `${nickname} / ${locationName}` : nickname;
+    const initial = nickname.slice(0, 1).toUpperCase() || "R";
+    const photo = profile && profile.photo ? String(profile.photo) : "";
+
+    sharedBadgeNickname.textContent = displayName;
+    sharedBadgeMeta.textContent = `${requestedBadge.name} · ${requestedBadge.description}`;
+    sharedBadgeHeaderInitial.textContent = initial;
+    sharedBadgeProfileInitial.textContent = initial;
+    sharedBadgeProfileName.textContent = displayName;
+    sharedBadgeCode.textContent = requestedBadge.code;
+    sharedBadgeName.textContent = requestedBadge.name;
+    sharedBadgeMessage.textContent = `${displayName} 님이 ${requestedBadge.name} 배지를 획득했어요!`;
+    sharedBadgeDescription.textContent = `${requestedBadge.description} 조건을 달성한 활동 배지입니다.`;
+    sharedBadgeMedal.style.setProperty("--badge-color", requestedBadge.color);
+    sharedBadgeMedal.classList.toggle("is-rainbow", Boolean(requestedBadge.rainbow));
+    sharedBadgeThumbnail.setAttribute("aria-label", `${displayName}님의 ${requestedBadge.name} 배지 달성 카드`);
+    setSharedBadgePhoto(sharedBadgeHeaderPhoto, sharedBadgeHeaderInitial, photo);
+    setSharedBadgePhoto(sharedBadgeProfilePhoto, sharedBadgeProfileInitial, photo);
+    sharedBadgeCard.hidden = false;
+    document.title = `${requestedBadge.name} 배지 · REP:ORT`;
+  };
+
+  const setupSharedBadgePreview = async () => {
+    if (!isSharedBadge || !sharedBadgePreview) return;
+    if (pageParams.get("fallback") !== "1") {
+      const gateway = new URL("badge/", config.landingUrl || location.href);
+      pageParams.forEach((value, key) => {
+        if (key !== "mode" && key !== "fallback") gateway.searchParams.set(key, value);
+      });
+      gateway.searchParams.set("nickname", requestedBadgeNickname);
+      gateway.searchParams.set("badge", requestedBadgeId);
+      location.replace(gateway.href);
+      return;
+    }
+
+    document.body.classList.add("badge-mode");
+    sharedBadgePreview.hidden = false;
+    renderSharedBadge();
+    if (sharedBadgeAppButton) sharedBadgeAppButton.addEventListener("click", openSharedBadgeInApp);
+    try {
+      const badgeProfile = await fetchSharedBadgeProfileFromFirestore();
+      renderSharedBadge(badgeProfile);
+      sharedBadgeStatus.textContent = badgeProfile.photo
+        ? "앱이 설치되어 있지 않아 웹에서 배지를 보여드려요."
+        : "공유된 배지를 확인했어요.";
+    } catch (error) {
+      sharedBadgeStatus.textContent = error && error.status === 429
+        ? "서버 조회가 잠시 지연되어 배지를 먼저 보여드려요."
+        : "프로필 사진은 불러오지 못했지만 공유된 배지는 확인할 수 있어요.";
+    }
+  };
+
   applyUnsupportedPlatformMessage();
   setupSharedRecordPreview();
+  setupSharedBadgePreview();
 
   const setupScrollReveal = () => {
     const targets = [...document.querySelectorAll("[data-reveal]")];

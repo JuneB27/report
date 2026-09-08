@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0e">
+  <meta name="robots" content="noindex">
+  <title>REP:ORT 배지 열기</title>
+  <link rel="icon" href="../assets/app-icon.png">
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100svh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      background: #0b0b0e;
+      color: #f5f5f2;
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      text-align: center;
+    }
+    main { display: grid; justify-items: center; }
+    img { width: 82px; height: 82px; border-radius: 22px; box-shadow: 0 18px 46px rgba(0,0,0,.45); }
+    h1 { margin: 18px 0 7px; font-size: 1.55rem; letter-spacing: -.04em; }
+    h1 span { color: #ffb719; }
+    p { margin: 0; color: #9b9ba8; }
+    i {
+      width: 96px;
+      height: 4px;
+      margin-top: 24px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #24242b;
+    }
+    i::after {
+      content: "";
+      display: block;
+      width: 42%;
+      height: 100%;
+      border-radius: inherit;
+      background: #ffb719;
+      animation: loading 820ms ease-in-out infinite alternate;
+    }
+    @keyframes loading { to { transform: translateX(138%); } }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="../assets/app-icon.png" alt="">
+    <h1>REP<span>:</span>ORT</h1>
+    <p>앱 설치 여부를 확인하고 있어요.</p>
+    <i aria-hidden="true"></i>
+  </main>
+  <script>
+    (() => {
+      const params = new URLSearchParams(location.search);
+      const nickname = String(params.get("nickname") || "").trim().slice(0, 40);
+      const badgeId = String(params.get("badge") || "").trim();
+      const postId = /^\d+$/.test(params.get("post") || "") ? params.get("post") : "";
+      const validBadges = new Set([
+        "first", "week3", "ten", "streak4", "twentyfive",
+        "fifty", "streak12", "hundred", "weeks26"
+      ]);
+      const fallback = new URL("../", location.href);
+      fallback.searchParams.set("mode", nickname && validBadges.has(badgeId) ? "badge" : "invite");
+
+      if (!nickname || !validBadges.has(badgeId)) {
+        location.replace(fallback.href);
+        return;
+      }
+
+      params.forEach((value, key) => {
+        if (key !== "mode" && key !== "fallback") fallback.searchParams.set(key, value);
+      });
+      fallback.searchParams.set("nickname", nickname);
+      fallback.searchParams.set("badge", badgeId);
+      fallback.searchParams.set("fallback", "1");
+
+      const userAgent = navigator.userAgent || "";
+      const isiOS = /iPad|iPhone|iPod/i.test(userAgent)
+        || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isSafari = /Safari/i.test(userAgent)
+        && !/(Chrome|Chromium|CriOS|FxiOS|EdgiOS|OPR|Android)/i.test(userAgent);
+      if (isiOS || isSafari) {
+        location.replace(fallback.href);
+        return;
+      }
+
+      let leftPage = false;
+      const markLeft = () => {
+        if (document.visibilityState === "hidden") leftPage = true;
+      };
+      document.addEventListener("visibilitychange", markLeft);
+      window.addEventListener("pagehide", () => { leftPage = true; }, { once: true });
+
+      const query = `profile=${encodeURIComponent(nickname)}${postId ? `&post=${encodeURIComponent(postId)}` : ""}`;
+      const encodedFallback = encodeURIComponent(fallback.href);
+      const intentUrl = `intent://record?${query}#Intent;scheme=report;package=com.js.reportfitness;S.browser_fallback_url=${encodedFallback};end`;
+      const deepLink = `report://record?${query}`;
+      location.href = /Android/i.test(userAgent) ? intentUrl : deepLink;
+
+      window.setTimeout(() => {
+        if (!leftPage && document.visibilityState === "visible") location.replace(fallback.href);
+      }, 1300);
+    })();
+  </script>
+</body>
+</html>

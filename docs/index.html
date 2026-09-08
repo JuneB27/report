@@ -13,12 +13,12 @@
   <link rel="canonical" href="https://juneb27.github.io/report/?mode=invite">
   <title>REP:ORT</title>
   <link rel="icon" href="assets/app-icon.png">
-  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="styles.css?v=13">
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.2/kakao.min.js"
           integrity="sha384-zt/G7/KfaRQ9dT/QIkS0ujMtzouJqzuSJcXVQu50x0rl/+mD1dc70AeOejVbMD9E"
           crossorigin="anonymous" defer></script>
   <script src="config.js?v=3" defer></script>
-  <script src="app.js?v=21" defer></script>
+  <script src="app.js?v=22" defer></script>
 </head>
 <body>
   <main>
@@ -56,6 +56,62 @@
         <div class="shared-record-invite" id="shared-record-invite" hidden>
           <strong>REP:ORT 앱에서 공유된 기록입니다.</strong>
           <a class="button button-primary" id="shared-record-invite-button" href="#apply">앱 초대 등록하고 바로 응원 보내기 🥳</a>
+        </div>
+      </article>
+    </section>
+
+    <section class="shared-record-preview shared-badge-preview" id="shared-badge-preview" hidden aria-live="polite">
+      <div class="shared-record-heading">
+        <p class="eyebrow">NEW BADGE</p>
+        <h2>함께 축하할 배지예요.</h2>
+        <p id="shared-badge-status">프로필 사진을 불러오고 있어요.</p>
+      </div>
+      <article class="shared-record-card shared-badge-card" id="shared-badge-card" hidden>
+        <header class="shared-record-author">
+          <span class="shared-record-avatar shared-badge-header-avatar" aria-hidden="true">
+            <img id="shared-badge-header-photo" alt="" hidden>
+            <span id="shared-badge-header-initial">R</span>
+          </span>
+          <span>
+            <strong id="shared-badge-nickname">REP:ORT</strong>
+            <small id="shared-badge-meta">새 활동 배지를 획득했어요</small>
+          </span>
+        </header>
+
+        <div class="shared-badge-thumbnail" id="shared-badge-thumbnail">
+          <img class="shared-badge-frame" src="assets/badge-share-frame.svg" alt="" aria-hidden="true">
+          <div class="shared-badge-stage">
+            <div class="shared-badge-profile-panel">
+              <img id="shared-badge-profile-photo" alt="공유한 사용자의 프로필 사진" hidden>
+              <span class="shared-badge-profile-fallback" id="shared-badge-profile-initial" aria-hidden="true">R</span>
+              <span class="shared-badge-profile-name" id="shared-badge-profile-name">REP:ORT</span>
+            </div>
+            <div class="shared-badge-medal-panel">
+              <span>BADGE UNLOCKED</span>
+              <div class="shared-badge-medal" id="shared-badge-medal" aria-hidden="true">
+                <span class="shared-badge-medal-fill"></span>
+                <img src="assets/badge-medal-frame.svg" alt="">
+                <strong id="shared-badge-code">1</strong>
+              </div>
+              <strong id="shared-badge-name">첫 플레이트</strong>
+            </div>
+          </div>
+          <p class="shared-badge-message" id="shared-badge-message">REP:ORT님이 배지를 달성했어요!</p>
+        </div>
+
+        <div class="shared-record-actions shared-badge-actions">
+          <p class="shared-badge-description" id="shared-badge-description"></p>
+          <div class="shared-record-view-buttons" id="shared-badge-view-buttons">
+            <a class="button button-record" id="shared-badge-web-button" href="https://rep-ort.vercel.app/">웹으로 보기</a>
+            <button class="button button-record" id="shared-badge-app-button" type="button">
+              <img class="shared-record-app-icon" src="assets/android-robot.png" width="22" height="22" alt="">
+              <span>앱으로 보기</span>
+            </button>
+          </div>
+        </div>
+        <div class="shared-record-invite" id="shared-badge-invite" hidden>
+          <strong>REP:ORT 앱에서 공유된 배지입니다.</strong>
+          <a class="button button-primary" id="shared-badge-invite-button" href="#apply">앱 초대 등록하고 함께 축하하기 🎉</a>
         </div>
       </article>
     </section>

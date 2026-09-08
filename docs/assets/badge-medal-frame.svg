@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="REP:ORT 활동 배지 테두리">
+  <defs>
+    <linearGradient id="steel" x1=".18" y1=".08" x2=".82" y2=".92">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".32" stop-color="#d8d9df"/>
+      <stop offset=".64" stop-color="#777985"/>
+      <stop offset="1" stop-color="#f7f7f4"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="116" fill="none" stroke="url(#steel)" stroke-width="10"/>
+  <circle cx="128" cy="128" r="102" fill="none" stroke="#101014" stroke-opacity=".72" stroke-width="4"/>
+  <path d="M56 68a96 96 0 0 1 61-36" fill="none" stroke="#fff" stroke-opacity=".62" stroke-width="5" stroke-linecap="round"/>
+</svg>
