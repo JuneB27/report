@@ -115,7 +115,9 @@ h1 span, footer span { color: var(--yellow); }
 #shared-badge-status[hidden],
 #shared-badge-app-button[hidden],
 #shared-popular-status[hidden],
-#shared-popular-app-button[hidden] {
+#shared-popular-app-button[hidden],
+#shared-popular-snapshot[hidden],
+#shared-popular-thumbnail[hidden] {
   display: none;
 }
 
@@ -440,6 +442,14 @@ h1 span, footer span { color: var(--yellow); }
 }
 
 .shared-popular-card { background: #101014; }
+.shared-popular-snapshot {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: #0e0e12;
+}
 .shared-popular-thumbnail {
   position: relative;
   width: 100%;

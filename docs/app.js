@@ -52,6 +52,8 @@
   const sharedPopularTitle = document.querySelector("#shared-popular-title");
   const sharedPopularDate = document.querySelector("#shared-popular-date");
   const sharedPopularList = document.querySelector("#shared-popular-list");
+  const sharedPopularThumbnail = document.querySelector("#shared-popular-thumbnail");
+  const sharedPopularSnapshot = document.querySelector("#shared-popular-snapshot");
   const sharedPopularWebButton = document.querySelector("#shared-popular-web-button");
   const sharedPopularAppButton = document.querySelector("#shared-popular-app-button");
   const sharedPopularViewButtons = document.querySelector("#shared-popular-view-buttons");
@@ -89,7 +91,10 @@
   const requestedPopularPeriod = pageParams.get("period") === "today" ? "today" : "week";
   const requestedPopularDate = /^\d{4}-\d{2}-\d{2}$/.test(pageParams.get("date") || "")
     ? pageParams.get("date") : "";
+  const requestedPopularImage = /^https:\/\//i.test(pageParams.get("image") || "")
+    ? pageParams.get("image") : "";
   const isSharedPopular = pageMode === "popular" && requestedPopularIds.length > 0;
+  let sharedPopularLiveRendered = false;
   const requestedDocumentId = /^\d+$/.test(pageParams.get("doc") || "")
     ? pageParams.get("doc")
     : sharedPostId;
@@ -316,6 +321,12 @@
 
   const renderSharedPopular = (posts) => {
     if (!sharedPopularCard || !sharedPopularList) return;
+    sharedPopularLiveRendered = true;
+    if (sharedPopularSnapshot) {
+      sharedPopularSnapshot.hidden = true;
+      sharedPopularSnapshot.removeAttribute("src");
+    }
+    if (sharedPopularThumbnail) sharedPopularThumbnail.hidden = false;
     const periodTitle = requestedPopularPeriod === "today"
       ? "오늘의 인기 인증 TOP 3" : "이번 주 인기 인증 TOP 3";
     if (sharedPopularHeading) sharedPopularHeading.textContent = periodTitle;
@@ -380,6 +391,38 @@
     });
     sharedPopularCard.hidden = false;
     document.title = `${periodTitle} · REP:ORT`;
+  };
+
+  const showSharedPopularSnapshot = () => {
+    if (!requestedPopularImage || !sharedPopularSnapshot || !sharedPopularCard) return false;
+    const periodTitle = requestedPopularPeriod === "today"
+      ? "오늘의 인기 인증 TOP 3" : "이번 주 인기 인증 TOP 3";
+    if (sharedPopularHeading) sharedPopularHeading.textContent = periodTitle;
+    if (sharedPopularThumbnail) sharedPopularThumbnail.hidden = true;
+    sharedPopularSnapshot.alt = `${periodTitle} 공유 이미지`;
+    sharedPopularSnapshot.onload = () => {
+      if (sharedPopularLiveRendered) return;
+      sharedPopularSnapshot.hidden = false;
+      sharedPopularCard.hidden = false;
+      if (sharedPopularStatus) sharedPopularStatus.hidden = true;
+    };
+    sharedPopularSnapshot.onerror = () => {
+      sharedPopularSnapshot.hidden = true;
+      sharedPopularSnapshot.removeAttribute("src");
+      if (sharedPopularLiveRendered) return;
+      if (sharedPopularThumbnail) sharedPopularThumbnail.hidden = false;
+      sharedPopularCard.hidden = true;
+      if (sharedPopularStatus) {
+        sharedPopularStatus.hidden = false;
+        sharedPopularStatus.textContent = "인기 인증 기록을 불러오지 못했습니다. 앱에서 다시 확인해 주세요.";
+      }
+    };
+    sharedPopularSnapshot.src = requestedPopularImage;
+    sharedPopularSnapshot.hidden = false;
+    sharedPopularCard.hidden = false;
+    if (sharedPopularStatus) sharedPopularStatus.hidden = true;
+    document.title = `${periodTitle} · REP:ORT`;
+    return true;
   };
 
   const embeddedSharedRecord = () => {
@@ -679,6 +722,7 @@
 
     document.body.classList.add("popular-mode");
     sharedPopularPreview.hidden = false;
+    const hasSnapshot = showSharedPopularSnapshot();
     if (sharedPopularAppButton) {
       sharedPopularAppButton.addEventListener("click", openSharedPopularInApp);
     }
@@ -690,8 +734,14 @@
       const posts = loaded.filter(Boolean);
       if (!posts.length) throw firestoreError(404, "Popular records not found");
       renderSharedPopular(posts);
+      sharedPopularStatus.hidden = false;
       sharedPopularStatus.textContent = "앱이 설치되어 있지 않아 웹에서 인기 인증을 보여드려요.";
     } catch (error) {
+      if (hasSnapshot) {
+        sharedPopularStatus.hidden = true;
+        return;
+      }
+      sharedPopularStatus.hidden = false;
       sharedPopularStatus.textContent = error && error.status === 429
         ? "서버의 오늘 조회 한도가 소진되었습니다. 앱에서 인기 인증을 확인해 주세요."
         : "인기 인증 기록을 불러오지 못했습니다. 앱에서 다시 확인해 주세요.";
