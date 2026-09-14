@@ -45,6 +45,18 @@
   const sharedBadgeViewButtons = document.querySelector("#shared-badge-view-buttons");
   const sharedBadgeInvite = document.querySelector("#shared-badge-invite");
   const sharedBadgeInviteButton = document.querySelector("#shared-badge-invite-button");
+  const sharedPopularPreview = document.querySelector("#shared-popular-preview");
+  const sharedPopularCard = document.querySelector("#shared-popular-card");
+  const sharedPopularHeading = document.querySelector("#shared-popular-heading");
+  const sharedPopularStatus = document.querySelector("#shared-popular-status");
+  const sharedPopularTitle = document.querySelector("#shared-popular-title");
+  const sharedPopularDate = document.querySelector("#shared-popular-date");
+  const sharedPopularList = document.querySelector("#shared-popular-list");
+  const sharedPopularWebButton = document.querySelector("#shared-popular-web-button");
+  const sharedPopularAppButton = document.querySelector("#shared-popular-app-button");
+  const sharedPopularViewButtons = document.querySelector("#shared-popular-view-buttons");
+  const sharedPopularInvite = document.querySelector("#shared-popular-invite");
+  const sharedPopularInviteButton = document.querySelector("#shared-popular-invite-button");
   const status = document.querySelector("#status");
   const inviteCompleteCard = document.querySelector("#invite-complete-card");
   const inviteCompleteMark = document.querySelector("#invite-complete-mark");
@@ -72,6 +84,12 @@
   const requestedBadgeId = String(pageParams.get("badge") || "").trim();
   const requestedBadge = BADGES[requestedBadgeId] || null;
   const isSharedBadge = pageMode === "badge" && Boolean(requestedBadgeNickname && requestedBadge);
+  const requestedPopularIds = [...new Set(String(pageParams.get("posts") || "")
+    .split(",").map((value) => value.trim()).filter((value) => /^\d+$/.test(value)))].slice(0, 3);
+  const requestedPopularPeriod = pageParams.get("period") === "today" ? "today" : "week";
+  const requestedPopularDate = /^\d{4}-\d{2}-\d{2}$/.test(pageParams.get("date") || "")
+    ? pageParams.get("date") : "";
+  const isSharedPopular = pageMode === "popular" && requestedPopularIds.length > 0;
   const requestedDocumentId = /^\d+$/.test(pageParams.get("doc") || "")
     ? pageParams.get("doc")
     : sharedPostId;
@@ -86,6 +104,9 @@
     : "";
   const sharedBadgeDeepLink = isSharedBadge
     ? `report://record?profile=${encodeURIComponent(requestedBadgeNickname)}${/^\d+$/.test(sharedPostId || "") ? `&post=${encodeURIComponent(sharedPostId)}` : ""}`
+    : "";
+  const sharedPopularDeepLink = isSharedPopular
+    ? `report://record?post=${encodeURIComponent(requestedPopularIds[0])}`
     : "";
   const sharedRecordWebUrl = (() => {
     if (!isSharedRecord) return String(config.webAppUrl || "https://rep-ort.vercel.app/");
@@ -102,12 +123,20 @@
     }
     return target.href;
   })();
+  const sharedPopularWebUrl = (() => {
+    const target = new URL(config.webAppUrl || "https://rep-ort.vercel.app/", location.href);
+    target.search = "";
+    target.hash = "";
+    if (isSharedPopular) target.searchParams.set("post", requestedPopularIds[0]);
+    return target.href;
+  })();
   if (openSharedRecord && isSharedRecord) {
     openSharedRecord.href = sharedRecordDeepLink;
     openSharedRecord.hidden = false;
   }
   if (sharedRecordWebButton) sharedRecordWebButton.href = sharedRecordWebUrl;
   if (sharedBadgeWebButton) sharedBadgeWebButton.href = sharedBadgeWebUrl;
+  if (sharedPopularWebButton) sharedPopularWebButton.href = sharedPopularWebUrl;
 
   const invitationUrl = () => {
     const target = new URL(config.landingUrl || location.origin + location.pathname, location.href);
@@ -134,10 +163,10 @@
     Object.entries(fields || {}).map(([key, value]) => [key, decodeFirestoreValue(value)])
   );
 
-  const normalizeFirestorePost = (post) => {
+  const normalizeFirestorePost = (post, expectedId = sharedPostId) => {
     if (!post || typeof post !== "object") return null;
     const id = Number(post.id);
-    if (!Number.isSafeInteger(id) || String(id) !== String(sharedPostId)) return null;
+    if (!Number.isSafeInteger(id) || String(id) !== String(expectedId)) return null;
     const types = Array.isArray(post.types)
       ? post.types.filter((value) => typeof value === "string" && value)
       : typeof post.type === "string" && post.type ? [post.type] : [];
@@ -245,9 +274,112 @@
     };
   };
 
+  const fetchPopularPostFromFirestore = async (postId) => {
+    if (!isSharedPopular || !/^\d+$/.test(String(postId || ""))) {
+      throw firestoreError(400, "Popular record is invalid");
+    }
+    if (!config.firebaseProjectId || !config.firebaseWebApiKey) {
+      throw firestoreError(0, "Firebase web configuration is missing");
+    }
+    const project = encodeURIComponent(config.firebaseProjectId);
+    const database = encodeURIComponent(config.firebaseDatabaseId || "(default)");
+    const endpoint = new URL(
+      `https://firestore.googleapis.com/v1/projects/${project}/databases/${database}/documents/submissions/${encodeURIComponent(postId)}`
+    );
+    endpoint.searchParams.set("key", config.firebaseWebApiKey);
+    const documentData = await fetchFirestoreJson(endpoint);
+    const post = normalizeFirestorePost(decodeFirestoreFields(documentData.fields || {}), postId);
+    if (!post) throw firestoreError(404, "Popular record not found");
+    return post;
+  };
+
   const typeLabel = (types) => {
     const labels = { strength: "💪 근력", cardio: "🏃 유산소", other: "✨ 기타" };
     return (Array.isArray(types) ? types : []).map((type) => labels[type] || type).filter(Boolean).join(" · ");
+  };
+
+  const postReactionKey = (reaction) => {
+    const key = String(reaction && reaction.reaction || "heart");
+    return ["heart", "fire", "muscle", "clap"].includes(key) ? key : "heart";
+  };
+
+  const popularDateRangeLabel = () => {
+    if (!requestedPopularDate) return requestedPopularPeriod === "today" ? "오늘" : "이번 주";
+    const [year, month, day] = requestedPopularDate.split("-").map(Number);
+    const end = new Date(year, month - 1, day, 12, 0, 0);
+    const compact = (date) => `${date.getMonth() + 1}.${String(date.getDate()).padStart(2, "0")}`;
+    if (requestedPopularPeriod === "today") return compact(end);
+    const start = new Date(end);
+    start.setDate(end.getDate() - ((end.getDay() + 6) % 7));
+    return `${compact(start)} — ${compact(end)}`;
+  };
+
+  const renderSharedPopular = (posts) => {
+    if (!sharedPopularCard || !sharedPopularList) return;
+    const periodTitle = requestedPopularPeriod === "today"
+      ? "오늘의 인기 인증 TOP 3" : "이번 주 인기 인증 TOP 3";
+    if (sharedPopularHeading) sharedPopularHeading.textContent = periodTitle;
+    if (sharedPopularTitle) sharedPopularTitle.textContent = periodTitle;
+    if (sharedPopularDate) sharedPopularDate.textContent = popularDateRangeLabel();
+    sharedPopularList.replaceChildren();
+
+    posts.slice(0, 3).forEach((post, index) => {
+      const likes = Array.isArray(post.likes) ? post.likes : [];
+      const hearts = likes.filter((reaction) => postReactionKey(reaction) === "heart").length;
+      const otherCheers = likes.filter((reaction) => ["fire", "muscle", "clap"].includes(postReactionKey(reaction))).length;
+      const comments = Array.isArray(post.comments) ? post.comments.length : 0;
+      const nickname = String(post.nickname || "회원").trim() || "회원";
+
+      const target = new URL("record/", config.landingUrl || location.href);
+      target.searchParams.set("schema", "2");
+      target.searchParams.set("post", String(post.id));
+      target.searchParams.set("doc", String(post.id));
+      const row = document.createElement("a");
+      row.className = "shared-popular-row";
+      row.href = target.href;
+      row.setAttribute("aria-label", `${nickname}님의 ${index + 1}위 인기 인증 게시물 보기`);
+
+      const photoWrap = document.createElement("span");
+      photoWrap.className = "shared-popular-photo-wrap";
+      const fallback = document.createElement("span");
+      fallback.className = "shared-popular-photo-fallback";
+      fallback.textContent = nickname.slice(0, 1).toUpperCase() || "R";
+      photoWrap.append(fallback);
+      const photo = String(post.photo || "");
+      if (/^(data:image\/|https:\/\/)/i.test(photo)) {
+        const image = document.createElement("img");
+        image.className = "shared-popular-photo";
+        image.alt = `${nickname}님의 운동 인증 사진`;
+        image.onload = () => { fallback.hidden = true; };
+        image.onerror = () => { image.remove(); fallback.hidden = false; };
+        image.src = photo;
+        photoWrap.append(image);
+      }
+      const rank = document.createElement("span");
+      rank.className = "shared-popular-rank";
+      rank.textContent = String(index + 1);
+      photoWrap.append(rank);
+
+      const copy = document.createElement("span");
+      copy.className = "shared-popular-copy";
+      const name = document.createElement("strong");
+      name.textContent = nickname;
+      const meta = document.createElement("span");
+      meta.className = "shared-popular-meta";
+      meta.textContent = [String(post.date || "").slice(5).replace("-", "."), typeLabel(post.types)]
+        .filter(Boolean).join(" · ");
+      const reactions = document.createElement("span");
+      reactions.className = "shared-popular-reactions";
+      reactions.textContent = `❤️ ${hearts}   💬 ${comments}   ✨ ${otherCheers}`;
+      const open = document.createElement("span");
+      open.className = "shared-popular-open";
+      open.textContent = "눌러서 게시물 보기";
+      copy.append(name, meta, reactions, open);
+      row.append(photoWrap, copy);
+      sharedPopularList.append(row);
+    });
+    sharedPopularCard.hidden = false;
+    document.title = `${periodTitle} · REP:ORT`;
   };
 
   const embeddedSharedRecord = () => {
@@ -305,7 +437,10 @@
     if (sharedRecordViewButtons) sharedRecordViewButtons.classList.add("is-web-only");
     if (sharedBadgeAppButton) sharedBadgeAppButton.hidden = true;
     if (sharedBadgeViewButtons) sharedBadgeViewButtons.classList.add("is-web-only");
-    [sharedRecordInviteButton, sharedBadgeInviteButton].filter(Boolean).forEach((button) => {
+    if (sharedPopularAppButton) sharedPopularAppButton.hidden = true;
+    if (sharedPopularViewButtons) sharedPopularViewButtons.classList.add("is-web-only");
+    [sharedRecordInviteButton, sharedBadgeInviteButton, sharedPopularInviteButton]
+      .filter(Boolean).forEach((button) => {
       button.textContent = "현재는 안드로이드 앱만 지원됩니다 🥺";
       button.href = "#";
       button.setAttribute("aria-disabled", "true");
@@ -363,6 +498,29 @@
     window.location.href = sharedBadgeDeepLink;
     window.setTimeout(() => {
       if (!appOpened && document.visibilityState === "visible") revealSharedBadgeInvite();
+    }, 1100);
+  };
+
+  const revealSharedPopularInvite = () => {
+    if (!sharedPopularInvite) return;
+    sharedPopularInvite.hidden = false;
+    sharedPopularInvite.classList.remove("is-inviting");
+    requestAnimationFrame(() => sharedPopularInvite.classList.add("is-inviting"));
+    window.setTimeout(() => sharedPopularInvite.scrollIntoView({ behavior: "smooth", block: "nearest" }), 180);
+  };
+
+  const openSharedPopularInApp = () => {
+    if (!sharedPopularDeepLink) return;
+    if (androidUnsupported) {
+      revealSharedPopularInvite();
+      return;
+    }
+    let appOpened = false;
+    const markOpened = () => { if (document.visibilityState === "hidden") appOpened = true; };
+    document.addEventListener("visibilitychange", markOpened, { once: true });
+    window.location.href = sharedPopularDeepLink;
+    window.setTimeout(() => {
+      if (!appOpened && document.visibilityState === "visible") revealSharedPopularInvite();
     }, 1100);
   };
 
@@ -507,9 +665,43 @@
     }
   };
 
+  const setupSharedPopularPreview = async () => {
+    if (!isSharedPopular || !sharedPopularPreview) return;
+    if (pageParams.get("fallback") !== "1") {
+      const gateway = new URL("popular/", config.landingUrl || location.href);
+      pageParams.forEach((value, key) => {
+        if (key !== "mode" && key !== "fallback") gateway.searchParams.set(key, value);
+      });
+      gateway.searchParams.set("posts", requestedPopularIds.join(","));
+      location.replace(gateway.href);
+      return;
+    }
+
+    document.body.classList.add("popular-mode");
+    sharedPopularPreview.hidden = false;
+    if (sharedPopularAppButton) {
+      sharedPopularAppButton.addEventListener("click", openSharedPopularInApp);
+    }
+    try {
+      const loaded = await Promise.all(requestedPopularIds.map(async (id) => {
+        try { return await fetchPopularPostFromFirestore(id); }
+        catch (_) { return null; }
+      }));
+      const posts = loaded.filter(Boolean);
+      if (!posts.length) throw firestoreError(404, "Popular records not found");
+      renderSharedPopular(posts);
+      sharedPopularStatus.textContent = "앱이 설치되어 있지 않아 웹에서 인기 인증을 보여드려요.";
+    } catch (error) {
+      sharedPopularStatus.textContent = error && error.status === 429
+        ? "서버의 오늘 조회 한도가 소진되었습니다. 앱에서 인기 인증을 확인해 주세요."
+        : "인기 인증 기록을 불러오지 못했습니다. 앱에서 다시 확인해 주세요.";
+    }
+  };
+
   applyUnsupportedPlatformMessage();
   setupSharedRecordPreview();
   setupSharedBadgePreview();
+  setupSharedPopularPreview();
 
   const setupScrollReveal = () => {
     const targets = [...document.querySelectorAll("[data-reveal]")];
